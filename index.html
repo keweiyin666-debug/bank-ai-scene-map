@@ -97,11 +97,35 @@
     .asset-editor-actions{display:flex;justify-content:flex-end;gap:10px}
     @media(max-width:560px){.asset-panel-heading{align-items:flex-start}.asset-panel-heading .detail-section__title{flex-basis:100%}.asset-panel-actions{margin-left:15px}}
     .asset-editor input:disabled,.asset-editor button:disabled{opacity:.65;cursor:wait}
+
+    /* v1.5.1: compact, complete context for agent readers. */
+    .agent-context{margin-top:12px;padding:10px 12px;border:1px solid #e4e9ef;border-radius:8px;background:#f8fafc}
+    .agent-context__title{margin:0 0 5px;color:#7c899b;font-size:10px;font-weight:600;line-height:1.5;letter-spacing:.3px}
+    .agent-context .supplement-table{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px;margin:0;border:0}
+    .agent-context .supplement-row{grid-template-columns:76px minmax(0,1fr);gap:6px;align-content:start;padding:5px 0;border:0;min-width:0}
+    .agent-context .supplement-row--wide{grid-column:1/-1}
+    .agent-context dt,.agent-context dd{margin:0;font-size:11px;line-height:1.5;font-weight:400;overflow-wrap:anywhere;white-space:pre-wrap}
+    .agent-context dt{color:#8894a3}.agent-context dd{color:#526176}
+    @media(max-width:560px){.agent-context .supplement-table{grid-template-columns:minmax(0,1fr)}.agent-context .supplement-row{grid-template-columns:76px minmax(0,1fr);padding:4px 0}}
+
+    /* Shared editing controls; existing card and five-section layout retained. */
+    #detail-ability .ability-detail{gap:10px}
+    #detail-ability .ability-step{padding:12px 14px;border-radius:10px}
+    #detail-ability .ability-step h4{margin:3px 0 4px;font-size:15px}
+    #detail-ability .ability-step p{font-size:12px;line-height:1.5;padding-right:0}
+    #detail-ability .status-label{margin-top:8px;padding:2px 6px;font-size:11px}
+    .content-editor{display:grid;gap:14px;margin:0}
+    .content-editor label{display:block;color:var(--muted);font-size:13px;font-weight:600}
+    .content-editor textarea{display:block;width:100%;min-width:0;min-height:94px;margin-top:6px;padding:10px 12px;resize:vertical;border:1px solid #ccd7e5;border-radius:7px;color:var(--ink);background:#fff;font:inherit;font-size:14px;line-height:1.65}
+    .content-editor textarea:focus{outline:2px solid #c6dcff;outline-offset:1px;border-color:var(--blue)}
+    .content-editor textarea:disabled,.content-editor button:disabled,.asset-edit-button:disabled{opacity:.65;cursor:wait}
+    .brief-item p,.change p,.detail-value p,.detail-feedback p,.scene-definition,.ba-row div,.voice q,.value-summary li{white-space:pre-wrap;overflow-wrap:anywhere}
+    @media(max-width:560px){#detail-ability .ability-detail{grid-template-columns:repeat(2,minmax(0,1fr))}#detail-ability .ability-step{padding:11px}#detail-ability .ability-step h4{font-size:14px}.content-editor .asset-editor-actions{flex-wrap:wrap}}
   </style>
 </head>
 <body>
   <header class="appbar"><div class="appbar__inner">
-    <a class="brand" href="#top"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7l9-5Z" stroke="currentColor" stroke-width="1.5"/><path d="m3.5 7.3 8.5 4.8 8.5-4.8M12 12.1V22M7.6 4.5l8.8 5v5L7.6 19.4v-15Z" stroke="#1769e0" stroke-width="1.2"/></svg><span>银行 AI 场景地图</span><span class="version">场景卡片体系 v1.4</span></a>
+    <a class="brand" href="#top"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7l9-5Z" stroke="currentColor" stroke-width="1.5"/><path d="m3.5 7.3 8.5 4.8 8.5-4.8M12 12.1V22M7.6 4.5l8.8 5v5L7.6 19.4v-15Z" stroke="#1769e0" stroke-width="1.2"/></svg><span>银行 AI 场景地图</span><span class="version">场景卡片体系 v1.5.1</span></a>
     <nav class="topnav"><a class="active" href="#map">场景地图</a><a href="#capabilities">能力框架</a></nav><div class="spacer"></div>
     <label class="search"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.6"/></svg><input id="search" type="search" placeholder="搜索具体场景" aria-label="搜索具体场景" /></label>
   </div></header>
@@ -121,7 +145,7 @@
     </aside><div class="content"><div class="breadcrumb" id="breadcrumb"></div><div class="content-head"><div><h2 id="domainTitle"></h2><p id="domainDesc"></p></div><div class="result-count" id="resultCount"></div></div><div id="sceneContent"></div></div></section>
   </main>
 
-  <footer><div class="footer-inner"><span>银行 AI 场景地图 · 共享链接版 v0.3</span><span>L3 可选 · L4 主页面直达 · 目标数据不等于已实现成效</span></div></footer>
+  <footer><div class="footer-inner"><span>银行 AI 场景地图 · 共享编辑版 v0.5.1</span><span>L3 可选 · L4 主页面直达 · 目标数据不等于已实现成效</span></div></footer>
 
   <div class="detail-layer" id="detailLayer" aria-hidden="true">
     <button class="detail-scrim" id="detailScrim" aria-label="关闭场景详情"></button>
@@ -2826,9 +2850,653 @@
       }
     })));
 
+    const knowhowPilotPreview={
+  "newScenes": [
+    {
+      "domainId": "BA01",
+      "section": {
+        "id": "BA01-P03",
+        "name": "绩效与机构管理",
+        "desc": "跟踪机构和岗位绩效，支持资源配置与管理评价。"
+      },
+      "scene": {
+        "id": "BA01-P03-S03",
+        "title": "业绩归属与绩效核算",
+        "definition": "绩效管理人员按客户与账户的认领关系和批准规则分配业绩、计算考核结果，并处理归属差异和历史追溯。",
+        "decision": "AI-L1",
+        "maturity": "待核实 · AI增强建议未验证",
+        "version": "v0.1",
+        "flagship": false,
+        "benchmark": false,
+        "digitalTalent": false,
+        "gateway": false,
+        "values": [
+          "管理决策",
+          "运营提效"
+        ],
+        "abilities": {
+          "D01": "done",
+          "D02": "partial",
+          "D03": "partial",
+          "D04": "partial"
+        },
+        "role": "绩效规则管理与核算人员、分支行考核负责人（岗位名称待核）",
+        "trigger": "考核周期结算、归属关系调整、规则参数变更或历史回溯",
+        "task": "在不同考核口径下确定业绩归属并生成可复核核算结果",
+        "dataScope": "客户/账户/子账户、销售人与管户关系、产品参数、考核参数与历史版本",
+        "outputs": "业绩归属明细、考核结果、奖金模拟及人工复核差异",
+        "collaboration": "当前为BI/程序案例基础，AI均为建议、非已实施能力。人工：审批规则版本及归属调整，复核异常和争议，签认正式结果；不能确定时挂起争议项，不自动发薪。 程序/规则：读取批准的关系及参数、计算业绩分配和模拟奖金、保留历史口径；重算与差异清单为建议控制，需验证实际功能。 分析模型：核心核算无需概率模型；可选异常检测不能改写结果。 大模型：建议解释核算差异并引用规则条款，不创造奖金公式。 Agent：可建议整理争议材料并发起待审事项，不能批准规则或核算结果。",
+        "manualCheck": "审批规则版本及归属调整，复核异常和争议，签认正式结果；不能确定时挂起争议项，不自动发薪。",
+        "before": "销售人与管户人可能不一致，多渠道和多层级归属及考核口径需要核对，个性化分行考核难直接复用总行规则。",
+        "after": "案例材料按客户或账户维度接入业绩分配关系、配置参数并查看核算结果；新版提到奖金模拟，正式核算确认与发薪仍需授权人工和专业系统。",
+        "feedback": "“我希望每笔业绩算给谁、按哪版规则计算都能查清，争议处理不再靠反复找人对表。”",
+        "metrics": [
+          {
+            "dimension": "效率",
+            "nature": "V00",
+            "text": "客户、账户等维度可统一分配核算，需补单周期核算人时、争议件处理时间及重算范围。"
+          },
+          {
+            "dimension": "质量/风险",
+            "nature": "V00",
+            "text": "案例材料区分会计与考核2种口径，需补归属正确率、差异复核率与规则版本可追溯率。"
+          },
+          {
+            "dimension": "经营/管理",
+            "nature": "V00",
+            "text": "支持分支行差异化考核和奖金模拟，需补争议减少量与结算准时率，不能声称已提升营销转化。"
+          }
+        ],
+        "quantBasis": "可靠量化收益尚未取得；按效率、质量/风险、经营/管理补充基线、目标、周期和范围。",
+        "scope": "分配关系、规则参数、考核查询与部分奖金模拟；实际生效流程待核；当前AI与Dora部署未验证，AI等级仅描述建议设计。",
+        "boundary": "不代替考核制度审批、正式评价与发薪，不自动调整客户归属",
+        "assets": {
+          "方案 PPT": "待补独立文件",
+          "看板 Demo": "待核实",
+          "Dora 体验": "未验证",
+          "短视频": "暂无"
+        }
+      }
+    },
+    {
+      "domainId": "BA01",
+      "section": {
+        "id": "BA01-P04",
+        "name": "报告与指标服务",
+        "desc": "提供统一指标查询、经营报告和管理材料支持。"
+      },
+      "scene": {
+        "id": "BA01-P04-S01",
+        "title": "授权范围内业务自助取数",
+        "definition": "业务分析人员在临时取数和条件变化时使用受控数据集自助查询与加工，获得满足业务口径及导出权限的结果。",
+        "decision": "AI-L1",
+        "maturity": "待核实 · AI增强建议未验证",
+        "version": "v0.1",
+        "flagship": false,
+        "benchmark": false,
+        "digitalTalent": false,
+        "gateway": false,
+        "values": [
+          "运营提效",
+          "客户与员工体验"
+        ],
+        "abilities": {
+          "D01": "done",
+          "D02": "partial",
+          "D03": "partial",
+          "D04": "partial"
+        },
+        "role": "业务分析人员、数字化营销岗、产品经理",
+        "trigger": "临时分析、条件变更或周期数据需求",
+        "task": "在已有授权与口径下灵活获得临时分析结果",
+        "dataScope": "授权数据表、字段及码值、指标口径、查询条件与导出权限",
+        "outputs": "查询表、分析数据集、受控导出结果",
+        "collaboration": "当前为BI/程序案例基础，AI均为建议、非已实施能力。人工：确认用途、口径与结果，敏感数据先走授权；缺字段或超权限时停止查询并提交相关场景，不绕过审批。 程序/规则：执行数据集与行列权限、查询加工和导出控制；结果依据已维护字段定义。 分析模型：当前不需要预测模型。 大模型：建议把业务问题转换为待确认的指标与过滤条件，取数执行必须受控。 Agent：可建议编排查询和依据展示；不能自行增权、任意生成SQL直连生产或导出数据。",
+        "manualCheck": "确认用途、口径与结果，敏感数据先走授权；缺字段或超权限时停止查询并提交相关场景，不绕过审批。",
+        "before": "临时取数依赖跨部门申请与反复沟通，条件变化后需要重新协调，业务人员难以自行调整。",
+        "after": "在已授权的数据集上自助查询和加工，条件变化可自行调整；首次授权、敏感审批和导出控制仍按制度执行。",
+        "feedback": "“我希望在已有权限内自己调整取数条件，同时清楚知道每个字段的口径和哪些数据不能导出。”",
+        "metrics": [
+          {
+            "dimension": "效率",
+            "nature": "V00",
+            "text": "在已有授权下减少重复沟通，需补同类查询前后周期与单次准备人时。"
+          },
+          {
+            "dimension": "质量/风险",
+            "nature": "V00",
+            "text": "前置查看与导出权限，需补越权阻断率、结果对账通过率及用途复核记录。"
+          },
+          {
+            "dimension": "经营/管理",
+            "nature": "V00",
+            "text": "提高临时分析需求响应能力，需补需求满足率和科技取数工单变化，不能按数据集数折算收益。"
+          }
+        ],
+        "quantBasis": "可靠量化收益尚未取得；按效率、质量/风险、经营/管理补充基线、目标、周期和范围。",
+        "scope": "BI授权查询和加工；自然语言问数、实时网关和任意SQL未证实；当前AI与Dora部署未验证，AI等级仅描述建议设计。",
+        "boundary": "不把自助等同无审批，600余取数次数是平台范围而非本卡AI调用量",
+        "assets": {
+          "方案 PPT": "待补独立文件",
+          "看板 Demo": "待核实",
+          "Dora 体验": "未验证",
+          "短视频": "暂无"
+        }
+      }
+    },
+    {
+      "domainId": "BA12",
+      "section": {
+        "id": "BA12-P02",
+        "name": "数据与模型治理",
+        "desc": "管理数据资产、质量问题和模型运营信息。"
+      },
+      "scene": {
+        "id": "BA12-P02-S02",
+        "title": "敏感数据申请与授权审计",
+        "definition": "数据管理和审批人员审核敏感数据使用目的及范围，按最小授权配置访问权限并追踪查询记录。",
+        "decision": "AI-L1",
+        "maturity": "待核实 · AI增强建议未验证",
+        "version": "v0.1",
+        "flagship": false,
+        "benchmark": false,
+        "digitalTalent": false,
+        "gateway": false,
+        "values": [
+          "风险合规",
+          "运营提效"
+        ],
+        "abilities": {
+          "D01": "done",
+          "D02": "na",
+          "D03": "partial",
+          "D04": "done"
+        },
+        "role": "数据管理人员、敏感数据审批部门、申请人",
+        "trigger": "敏感报表/指标申请、权限调整和使用检查",
+        "task": "按用途和最小范围审批数据访问并留下责任记录",
+        "dataScope": "申请用途、来源、计算逻辑、申请主体、审批权限和访问日志",
+        "outputs": "申请审批结果、授权记录、查询留痕与审计依据",
+        "collaboration": "当前为BI/程序案例基础，AI均为建议、非已实施能力。人工：数据权属与审批人员决定是否授权及可用范围，复核用途变更和异常；资料不全退回，不由AI放行。 程序/规则：承接申请、按批准范围配置权限并记录查询；有效期和自动回收是建议控制，案例材料未证实。 分析模型：可选异常访问检测需另验，不能用评分替代批准。 大模型：建议检查申请信息完整性、总结风险提示，不接触无权数据。 Agent：可建议汇总审批材料和提醒，不签批、不提权。",
+        "manualCheck": "数据权属与审批人员决定是否授权及可用范围，复核用途变更和异常；资料不全退回，不由AI放行。",
+        "before": "数据权限配置复杂，查看与导出边界及使用责任需要控制，敏感查询缺少明确申请和审批链会增加风险。",
+        "after": "新版案例材料描述一事一授权、谁用谁负责谁批谁负责，在线提交指标用途与逻辑后审核并配置权限，敏感查询留下记录；2021只证实分层权限控制。",
+        "feedback": "“我希望每次敏感数据开放都能说清谁申请、为何使用、谁批准，检查时能直接找到相应记录。”",
+        "metrics": [
+          {
+            "dimension": "效率",
+            "nature": "V00",
+            "text": "在线申请审核可减少线下往返，需补单笔授权办理时长、退回次数及申请范围。"
+          },
+          {
+            "dimension": "质量/风险",
+            "nature": "V00",
+            "text": "案例材料称每笔敏感查询有记录，尚需用日志验证留痕完整率、越权阻断率和查看导出边界，不能直接记100%。"
+          },
+          {
+            "dimension": "经营/管理",
+            "nature": "V00",
+            "text": "明确申请、审批与使用责任，需补到期回收率和审计定位时间，案例材料没有量化运营成效。"
+          }
+        ],
+        "quantBasis": "可靠量化收益尚未取得；按效率、质量/风险、经营/管理补充基线、目标、周期和范围。",
+        "scope": "申请—审批—权限配置及查询记录的案例陈述；不等于权限全生命周期验证；当前AI与Dora部署未验证，AI等级仅描述建议设计。",
+        "boundary": "不为提高取数效率取消敏感审批；不凭平台publicRelease字段判定公开许可",
+        "assets": {
+          "方案 PPT": "待补独立文件",
+          "看板 Demo": "待核实",
+          "Dora 体验": "未验证",
+          "短视频": "暂无"
+        }
+      }
+    },
+    {
+      "domainId": "BA10",
+      "section": {
+        "id": "BA10-P03",
+        "name": "资本与监管报送",
+        "desc": "支持资本管理和监管报送分析。"
+      },
+      "scene": {
+        "id": "BA10-P03-S01",
+        "title": "EAST规则筛查与数据质量核验",
+        "definition": "监管数据质量人员维护筛查规则并运行数据检核，跟踪问题趋势与明细，形成需业务或数据部门复核的问题清单。",
+        "decision": "AI-L1",
+        "maturity": "待核实 · AI增强建议未验证",
+        "version": "v0.1",
+        "flagship": false,
+        "benchmark": false,
+        "digitalTalent": false,
+        "gateway": false,
+        "values": [
+          "风险合规",
+          "运营提效"
+        ],
+        "abilities": {
+          "D01": "done",
+          "D02": "partial",
+          "D03": "partial",
+          "D04": "partial"
+        },
+        "role": "监管报送/数据质量管理责任人员（顾问归纳，部门待核）",
+        "trigger": "规则更新、监管数据检核或周期质量检查",
+        "task": "按批准规则筛查数据问题并复核明细",
+        "dataScope": "EAST相关数据、筛查模型文件、规则描述及问题明细",
+        "outputs": "筛查结果、质量问题明细、趋势及待复核项",
+        "collaboration": "当前为BI/程序案例基础，AI均为建议、非已实施能力。人工：确认监管规则与筛查含义，核查问题并决定修正，未经授权不得改生产或报送数据。 程序/规则：维护规则元信息、执行已批准文件的检核并生成明细；规则文件执行须在受控平台内。 分析模型：案例材料模型可能是规则脚本，不认定机器学习。 大模型：建议解释已确认的规则与问题描述，不替代监管规则解释权。 Agent：可建议整理复核包与责任清单；整改、提交和自动清洗生效需另验审批控制。",
+        "manualCheck": "确认监管规则与筛查含义，核查问题并决定修正，未经授权不得改生产或报送数据。",
+        "before": "案例材料未给完整旧作业流程；顾问判断多项规则和数据问题需要统一维护及复核，不编造手工耗时。",
+        "after": "案例材料通过上传模型文件进行筛查清洗，查看乱象趋势与不合规数据明细；模型技术类别、整改回录和正式报送接口未明。",
+        "feedback": "“我希望每条质量问题能对应到筛查规则和明细，先核清数据问题再决定如何整改。”",
+        "metrics": [
+          {
+            "dimension": "效率",
+            "nature": "V00",
+            "text": "集中规则运行和明细管理可减少逐项排查，需补检核批次耗时与规则维护人时。"
+          },
+          {
+            "dimension": "质量/风险",
+            "nature": "V00",
+            "text": "保留规则及问题趋势有助复核，需补误报率、漏检率和问题确认样本，不能把筛查命中当违规事实。"
+          },
+          {
+            "dimension": "经营/管理",
+            "nature": "V00",
+            "text": "可支持质量整改优先级，需补问题整改周期和复发率，尚无可验证改善数字。"
+          }
+        ],
+        "quantBasis": "可靠量化收益尚未取得；按效率、质量/风险、经营/管理补充基线、目标、周期和范围。",
+        "scope": "规则文件管理、筛查、问题趋势与明细；整改和报送闭环待补；当前AI与Dora部署未验证，AI等级仅描述建议设计。",
+        "boundary": "不把模型等同大模型，不将不合规数据自动定性为违规业务，不等同H01正式统计报送",
+        "assets": {
+          "方案 PPT": "待补独立文件",
+          "看板 Demo": "待核实",
+          "Dora 体验": "未验证",
+          "短视频": "暂无"
+        }
+      }
+    },
+    {
+      "domainId": "BA05",
+      "section": {
+        "id": "BA05-P02",
+        "name": "交易与组合管理",
+        "desc": "分析交易和组合的结构、收益与风险变化。"
+      },
+      "scene": {
+        "id": "BA05-P02-S02",
+        "title": "同业存款集合竞价管理",
+        "definition": "金融市场部在日常竞价窗口集中处理分行同业报价申请，依据批准策略确定中标并跟踪履约及警告记录。",
+        "decision": "AI-L2",
+        "maturity": "待核实 · AI增强建议未验证",
+        "version": "v0.1",
+        "flagship": false,
+        "benchmark": false,
+        "digitalTalent": false,
+        "gateway": false,
+        "values": [
+          "管理决策",
+          "风险合规"
+        ],
+        "abilities": {
+          "D01": "done",
+          "D02": "partial",
+          "D03": "partial",
+          "D04": "done"
+        },
+        "role": "总行金融市场部、分行同业业务人员",
+        "trigger": "工作日规定竞价窗口与中标后执行检查",
+        "task": "集中收集报价，按资金需求与策略确定中标并约束执行",
+        "dataScope": "同业金额利率报价、规模期限、申请时间、资金需求和执行记录",
+        "outputs": "竞价申请、汇总候选、中标结果与未执行警告",
+        "collaboration": "当前为BI/程序案例基础，AI均为建议、非已实施能力。人工：总行金融市场部审定策略和中标结果，核实未执行原因及处分边界；异常报价退回核查。 程序/规则：控制窗口、校验申请、汇总和按批准要素排序；按制度记录警告及申请资格，自动生效边界待核。 分析模型：核心筛选用确定规则即可，优化模型仅可试算参考。 大模型：建议解释报价差异和异常，不推荐未经批准交易。 Agent：可建议整理审阅包与执行提醒，不自动发布中标或成交指令。",
+        "manualCheck": "总行金融市场部审定策略和中标结果，核实未执行原因及处分边界；异常报价退回核查。",
+        "before": "分行分散争取同业存款可能引发价格竞争，资金需求和定价缺少统一协调，需总行集中管理。",
+        "after": "案例材料由分行收集报价并提交申请，总行按价格、规模、期限和时间等要素确定中标，对中标未执行分行记录警告及申请约束。",
+        "feedback": "“我希望各分行报价能在同一窗口比较，中标和未执行处理都有一致规则可查。”",
+        "metrics": [
+          {
+            "dimension": "效率",
+            "nature": "V00",
+            "text": "集中窗口可减少报价汇总往返，需补单日处理时长、申请量和人工复核工时。"
+          },
+          {
+            "dimension": "质量/风险",
+            "nature": "V00",
+            "text": "按价格规模期限等规则筛选可增强一致性，需补报价差错率、越权阻断与结果复核记录。"
+          },
+          {
+            "dimension": "经营/管理",
+            "nature": "V00",
+            "text": "有助统一控制同业存款成本与执行纪律，需补加权资金成本、履约率及比较基线，不能承诺利率下降。"
+          }
+        ],
+        "quantBasis": "可靠量化收益尚未取得；按效率、质量/风险、经营/管理补充基线、目标、周期和范围。",
+        "scope": "报价申请、中标与执行警告的案例流程；当前继续运行未核；当前AI与Dora部署未验证，AI等级仅描述建议设计。",
+        "boundary": "不自动交易、不让模型决定价格或处罚，程序执行也需服从授权制度",
+        "assets": {
+          "方案 PPT": "待补独立文件",
+          "看板 Demo": "待核实",
+          "Dora 体验": "未验证",
+          "短视频": "暂无"
+        }
+      }
+    },
+    {
+      "domainId": "BA10",
+      "section": {
+        "id": "BA10-P02",
+        "name": "盈利与资产负债管理",
+        "desc": "分析盈利结构、定价、流动性和资产负债变化。"
+      },
+      "scene": {
+        "id": "BA10-P02-S03",
+        "title": "网点现金需求汇总与调配",
+        "definition": "分行计财人员汇总支行网点的次日现金使用申请，核查需求与库存后形成经授权确认的调配安排。",
+        "decision": "AI-L2",
+        "maturity": "待核实 · AI增强建议未验证",
+        "version": "v0.1",
+        "flagship": false,
+        "benchmark": false,
+        "digitalTalent": false,
+        "gateway": false,
+        "values": [
+          "管理决策",
+          "运营提效",
+          "风险合规"
+        ],
+        "abilities": {
+          "D01": "done",
+          "D02": "planned",
+          "D03": "partial",
+          "D04": "partial"
+        },
+        "role": "分行计划财务部、支行/网点现金需求申报人员",
+        "trigger": "每日次日现金计划编制和申请变化",
+        "task": "掌握次日现金需求并合理调配库存",
+        "dataScope": "网点头寸使用申请、次日需求汇总；库存与调运约束为需补数据",
+        "outputs": "次日申请汇总、现金缺口与人工调配依据",
+        "collaboration": "当前为BI/程序案例基础，AI均为建议、非已实施能力。人工：确认申请真实性、库存和调运安全约束，审定调配；需求异常先联系网点复核，资金不能自动转移。 程序/规则：收集申请、按机构日期汇总和保留变更；库存匹配与阈值检查需补接口后验证。 分析模型：可建议预测现金需求，案例材料无预测模型。 大模型：建议解释缺口和整理调配理由，计算必须引用系统结果。 Agent：可建议汇总待审安排和提醒，不自动调拨、支付或安排押运。",
+        "manualCheck": "确认申请真实性、库存和调运安全约束，审定调配；需求异常先联系网点复核，资金不能自动转移。",
+        "before": "分行计财每天需要掌握各支行头寸使用情况，汇总和库存调配依赖对各网点需求的及时收集。",
+        "after": "案例材料由支行和网点发起申请，分行计财查询次日汇总并据此调配现金；未证明自动预测、自动下发或押运排程。",
+        "feedback": "“我希望一次看清明天各网点要多少现金，再结合库存和安全约束安排调配。”",
+        "metrics": [
+          {
+            "dimension": "效率",
+            "nature": "V00",
+            "text": "将每日次日申请集中汇总，需补每日准备人时、补报次数和处理截止时点。"
+          },
+          {
+            "dimension": "质量/风险",
+            "nature": "V00",
+            "text": "可减少漏报与版本混用，需补申请完整率、核对差错率及调运安全复核记录。"
+          },
+          {
+            "dimension": "经营/管理",
+            "nature": "V00",
+            "text": "有助匹配现金库存与网点需求，需补现金缺口、闲置库存和应急调运成本，不能承诺库存下降幅度。"
+          }
+        ],
+        "quantBasis": "可靠量化收益尚未取得；按效率、质量/风险、经营/管理补充基线、目标、周期和范围。",
+        "scope": "网点申请及分行次日汇总；自动调配与预测均未证实；当前AI与Dora部署未验证，AI等级仅描述建议设计。",
+        "boundary": "本例是现金库存需求，不扩写为全行流动性交易策略，实际运营归口需核",
+        "assets": {
+          "方案 PPT": "待补独立文件",
+          "看板 Demo": "待核实",
+          "Dora 体验": "未验证",
+          "短视频": "暂无"
+        }
+      }
+    },
+    {
+      "domainId": "BA06",
+      "section": {
+        "id": "BA06-P01",
+        "name": "渠道运营",
+        "desc": "分析手机银行、网银和网点的运营表现。"
+      },
+      "scene": {
+        "id": "BA06-P01-S04",
+        "title": "网点资源匹配与布局评估",
+        "definition": "渠道管理人员结合网点经营业务量与周边客群POI，评估资源和产出匹配，形成需进一步论证的网络与服务配置建议。",
+        "decision": "AI-L2",
+        "maturity": "待核实 · AI增强建议未验证",
+        "version": "v0.1",
+        "flagship": false,
+        "benchmark": false,
+        "digitalTalent": false,
+        "gateway": false,
+        "values": [
+          "管理决策",
+          "运营提效"
+        ],
+        "abilities": {
+          "D01": "done",
+          "D02": "partial",
+          "D03": "partial",
+          "D04": "partial"
+        },
+        "role": "渠道网络与网点资源管理人员（顾问归纳），支行管理者",
+        "trigger": "网点周期评价、资源配置和布局调整论证",
+        "task": "评估区域客群资源与网点产能产出匹配，选择资源调整方向",
+        "dataScope": "存款余额日均、近3个月业务量、网点位置、周边住宅与写字楼POI",
+        "outputs": "资源热力图、网点分类、机具人员或规模调整建议",
+        "collaboration": "当前为BI/程序案例基础，AI均为建议、非已实施能力。人工：渠道负责人核实区域资源、合规与经营约束，决定是否论证调整；数据过时或样本不足时先实地调查。 程序/规则：受控获取POI与坐标、汇总业务量、生成地图及分类比较；不得绕过地图服务许可。 分析模型：可建议资源匹配评分，当前分类规则不能当预测因果模型。 大模型：建议说明分类依据并整理论证要点，不自动宣布网点压降。 Agent：可建议汇集内外部分析证据，投资、撤并和人员调整仍走正式审批。",
+        "manualCheck": "渠道负责人核实区域资源、合规与经营约束，决定是否论证调整；数据过时或样本不足时先实地调查。",
+        "before": "仅凭网点业绩难判断是区域客群资源不足还是服务资源配置不匹配，业务量和外部环境缺少联动观察。",
+        "after": "案例材料结合行内业务量和地图API获取的POI进行网点分类，提出窗口、机具、营销或规模调整建议；未证明建议已审批或实施。",
+        "feedback": "“我希望先弄清一家网点是周边资源不够还是配置不合适，再讨论增配、营销或规模调整。”",
+        "metrics": [
+          {
+            "dimension": "效率",
+            "nature": "V00",
+            "text": "集中汇总网点与周期业务量，需补单次评价准备人时和覆盖范围，网点数不等于改善数量。"
+          },
+          {
+            "dimension": "质量/风险",
+            "nature": "V00",
+            "text": "结合内外部资源开展比较，需补POI完整率、更新日期和分类人工验证率。"
+          },
+          {
+            "dimension": "经营/管理",
+            "nature": "V00",
+            "text": "支持资源调整论证，需补建议采纳率、投入产出及调整后观察周期，不能承诺收益提升。"
+          }
+        ],
+        "quantBasis": "可靠量化收益尚未取得；按效率、质量/风险、经营/管理补充基线、目标、周期和范围。",
+        "scope": "历史区域网点分类及建议；实际布局方案和当前规模未核；当前AI与Dora部署未验证，AI等级仅描述建议设计。",
+        "boundary": "周边资源与产出是相关分析，不能据此直接关停或缩编网点；日常厅堂排班仍归既有卡",
+        "assets": {
+          "方案 PPT": "待补独立文件",
+          "看板 Demo": "待核实",
+          "Dora 体验": "未验证",
+          "短视频": "暂无"
+        }
+      }
+    },
+    {
+      "domainId": "BA10",
+      "section": {
+        "id": "BA10-P02",
+        "name": "盈利与资产负债管理",
+        "desc": "分析盈利结构、定价、流动性和资产负债变化。"
+      },
+      "scene": {
+        "id": "BA10-P02-S04",
+        "title": "EVA价值驱动与波动诊断",
+        "definition": "计财分析人员在EVA波动或预算检视时沿价值树分解业务贡献、规模价格与FTP因素，定位机构产品和客群层面的价值变化。",
+        "decision": "AI-L2",
+        "maturity": "待核实 · AI增强建议未验证",
+        "version": "v0.1",
+        "flagship": false,
+        "benchmark": false,
+        "digitalTalent": false,
+        "gateway": false,
+        "values": [
+          "管理决策",
+          "运营提效"
+        ],
+        "abilities": {
+          "D01": "done",
+          "D02": "done",
+          "D03": "partial",
+          "D04": "planned"
+        },
+        "role": "总行计划财务分析人员",
+        "trigger": "月季经营分析、EVA异常或预算差距诊断",
+        "task": "定位EVA目标差距及价值驱动变化，形成财务经营解释",
+        "dataScope": "经审定EVA口径、预算、存贷款与中收、FTP、规模价格、机构产品客群及资本成本",
+        "outputs": "价值树、EVA差距、因素分解与多维下钻分析",
+        "collaboration": "当前为BI/程序案例基础，AI均为建议、非已实施能力。人工：批准财务口径和因素解释，核实资本成本等边界，决定预算或经营调整；对不上账时暂停结论并对账。 程序/规则：按已批准公式计算EVA与因素贡献、预算差距和下钻；文中近似利润解释不能直接成为正式核算公式。 分析模型：当前是确定性财务分解，非自动因果识别；若有情景模型须验证假设。 大模型：建议解释已计算的贡献与差距，区分会计分解和经营因果。 Agent：可建议汇总分析材料交给相关场景会议流程；不跨权限取数或自动调整定价预算。",
+        "manualCheck": "批准财务口径和因素解释，核实资本成本等边界，决定预算或经营调整；对不上账时暂停结论并对账。",
+        "before": "财务经营分析取数和口径不统一，汇报可能停在结论层，规模、价格及价值创造因素难在同一分析链中核对。",
+        "after": "案例材料一期围绕总行计财构建经营总览、EVA价值树与波动诊断，按业务及规模价格FTP下钻；实际因子结果、生产口径和持续运行仍待核实。",
+        "feedback": "“我希望沿同一价值树看清EVA差距来自哪类业务和哪些价格规模因素，再核实经营原因。”",
+        "metrics": [
+          {
+            "dimension": "效率",
+            "nature": "V00",
+            "text": "统一存款、贷款、中间业务3类EVA分析入口，需补月季取数与因素分析人时，3类只是设计范围。"
+          },
+          {
+            "dimension": "质量/风险",
+            "nature": "V00",
+            "text": "沿价值树核对规模价格FTP贡献，需补因素分解对账率、公式版本和资本成本口径，不能声称归因准确率100%。"
+          },
+          {
+            "dimension": "经营/管理",
+            "nature": "V00",
+            "text": "支持EVA目标差距与资源讨论，需补建议采纳和经对照的EVA改善，当前未提供收益提升数字。"
+          }
+        ],
+        "quantBasis": "可靠量化收益尚未取得；按效率、质量/风险、经营/管理补充基线、目标、周期和范围。",
+        "scope": "一期财务EVA方案与分析设计；全行督办与跨条线推广为后续规划；当前AI与Dora部署未验证，AI等级仅描述建议设计。",
+        "boundary": "会计分解不等于因果归因，不用大模型生成计算事实，不自动调定价或预算",
+        "assets": {
+          "方案 PPT": "待补独立文件",
+          "看板 Demo": "待核实",
+          "Dora 体验": "未验证",
+          "短视频": "暂无"
+        }
+      }
+    },
+    {
+      "domainId": "BA12",
+      "section": {
+        "id": "BA12-P02",
+        "name": "数据与模型治理",
+        "desc": "管理数据资产、质量问题和模型运营信息。"
+      },
+      "scene": {
+        "id": "BA12-P02-S03",
+        "title": "数据字段与码值目录维护",
+        "definition": "数据维护人员按主题登记和更新表字段及码值信息，供业务人员理解数据含义并复用授权数据资源。",
+        "decision": "AI-L1",
+        "maturity": "待核实 · AI增强建议未验证",
+        "version": "v0.1",
+        "flagship": false,
+        "benchmark": false,
+        "digitalTalent": false,
+        "gateway": false,
+        "values": [
+          "运营提效",
+          "风险合规"
+        ],
+        "abilities": {
+          "D01": "done",
+          "D02": "na",
+          "D03": "partial",
+          "D04": "partial"
+        },
+        "role": "科技/数据管理维护人员、业务数据责任人",
+        "trigger": "数据上架、字段码值变化、主题更新与周期维护",
+        "task": "提供统一、可理解且可维护的数据定义供业务复用",
+        "dataScope": "数仓表、字段含义、业务主题、码值及数据责任信息（责任字段是否已有待核）",
+        "outputs": "字段目录、码值说明、可复用数据主题与更新记录",
+        "collaboration": "当前为BI/程序案例基础，AI均为建议、非已实施能力。人工：数据责任人确认定义与码值、批准变更；存在歧义先标待核，不让大模型自行填补口径。 程序/规则：登记、分类、检索和展示字段码值；变更日志与一致性校验为建议控制，需补当前实现证据。 分析模型：核心维护不需要概率模型。 大模型：建议起草字段解释和发现疑似歧义，由数据责任人审核。 Agent：可建议组织待维护清单，不直接修改权威元数据或批准数据定义。",
+        "manualCheck": "数据责任人确认定义与码值、批准变更；存在歧义先标待核，不让大模型自行填补口径。",
+        "before": "业务人员不易知道平台有哪些数据及字段含义，主题和码值解释分散，容易产生重复沟通和误用。",
+        "after": "按业务主题登记字段与码值并提供查询，由维护人员定期更新；自动血缘、变更日志及全量治理范围需另行核实。",
+        "feedback": "“我希望业务问到一个字段时能找到一致的定义和码值说明，修改后也知道该由谁确认。”",
+        "metrics": [
+          {
+            "dimension": "效率",
+            "nature": "V00",
+            "text": "集中查找字段与码值含义，需补查询解释和维护单项定义的耗时，不据目录规模推算节省人天。"
+          },
+          {
+            "dimension": "质量/风险",
+            "nature": "V00",
+            "text": "维护字段与码值2类说明，需补定义完整率、歧义率和更新及时率。"
+          },
+          {
+            "dimension": "经营/管理",
+            "nature": "V00",
+            "text": "支持业务复用统一定义，需补复用率、重复需求变化及责任覆盖率，当前没有已验证成效数字。"
+          }
+        ],
+        "quantBasis": "可靠量化收益尚未取得；按效率、质量/风险、经营/管理补充基线、目标、周期和范围。",
+        "scope": "字段及码值目录维护与查询；字段级血缘和影响传播不在本证据范围；当前AI与Dora部署未验证，AI等级仅描述建议设计。",
+        "boundary": "权威定义由责任人维护，不能与现有变更影响分析卡混同",
+        "assets": {
+          "方案 PPT": "待补独立文件",
+          "看板 Demo": "待核实",
+          "Dora 体验": "未验证",
+          "短视频": "暂无"
+        }
+      }
+    }
+  ],
+  "enrichments": [
+    {
+      "id": "BA01-01-01",
+      "scope": "已有方案、看板及 Dora 演示基础；真实客户指标范围与上线范围待项目台账核实。 本轮案例补充范围：一期财务分析材料可补强；全层级推广与督办实现待核；不据此升级整卡成熟度或AI实施状态。",
+      "collaboration": "本轮案例的人工与程序基础、AI增强建议分别为：人工：确认指标口径，选定议题，审定结论及责任人；缺数据或意见不一致时退回核查，不自动下达任务。 程序/规则：按已批准口径汇总目标和实际业绩、计算差距，生成会议数据材料；自动跟踪是案例材料方案目标，不能写已验收。 分析模型：暂不需要新增预测模型；财务分解由确定性计算承担。 大模型：建议基于已核数据生成议题和纪要草稿，不补造原因。 Agent：可建议编排取数与草稿整理；正式事项需组织者确认后进入已有任务系统，不承诺自动督办。 本轮不构成Dora或联合Agent已部署证明。"
+    },
+    {
+      "id": "BA01-01-03",
+      "scope": "当前以核心指标、部分归因指标及协作工具反馈为代表性实现，不代表全量指标和全流程覆盖。 本轮案例补充范围：机构指标比较、主题下钻与部分移动查询；客户机会任务、执行回执不据此验证；不据此升级整卡成熟度或AI实施状态。",
+      "collaboration": "本轮案例的人工与程序基础、AI增强建议分别为：人工：解释机构禀赋与业务约束，决定经营策略和任务安排；口径冲突回到数据责任部门核对。 程序/规则：汇总机构指标、计算增量与完成率、权限过滤和逐级钻取；并非自动生成经营因果。 分析模型：可选对标或异常检测需另外验证，不把排名当模型归因。 大模型：建议生成机构差距摘要并标注数据依据。 Agent：可建议组织跨报表材料，不自动向客户经理派任务；回录接口需另建和验证。 本轮不构成Dora或联合Agent已部署证明。"
+    },
+    {
+      "id": "BA01-P03-S01",
+      "scope": "已有昆山 BI 大赛作品提供可追溯的 BI 实现路径；AI、联合 Agent 和业务闭环范围仍按场景边界继续验证。 本轮案例补充范围：绩效查看、得分排名；知识库复用和学习闭环未证实；不据此升级整卡成熟度或AI实施状态。",
+      "collaboration": "本轮案例的人工与程序基础、AI增强建议分别为：人工：确认考核数据、解释特殊业务、决定辅导和评价；正式人事结论由有权限人员审定。 程序/规则：按规则汇总销售、计算KPI和排名，提供查看权限；正式归属和核算规则由相关场景负责。 分析模型：可选识别绩效短板，不把排名高低当因果。 大模型：建议生成辅导草稿及经授权的经验归纳，不能虚构优秀员工话术。 Agent：可建议在人工审核后组织经验入库和学习提醒，本批无实施证据。 本轮不构成Dora或联合Agent已部署证明。"
+    },
+    {
+      "id": "BA02-P02-S01",
+      "scope": "已有昆山 BI 大赛作品提供可追溯的 BI 实现路径；AI、联合 Agent 和业务闭环范围仍按场景边界继续验证。 本轮案例补充范围：客户资产/到期/动账信息展示，通联过程部分可查；AI评分、自动触达与统一回录未证实；不据此升级整卡成熟度或AI实施状态。",
+      "collaboration": "本轮案例的人工与程序基础、AI增强建议分别为：人工：核实资金用途和真实意愿，确认适当性与联系授权后沟通；资料异常先核查，不因动账直接营销或风险定性。 程序/规则：关联管户权限、产品到期与资产信息，按批准规则筛选动账并展示明细。 分析模型：可建议机会排序，案例材料未证明下一最佳行动评分模型。 大模型：建议生成客户摘要和沟通提纲，结论引用事实。 Agent：可建议组织访前材料，人工确认后才进入CRM动作，不自动联系客户。 本轮不构成Dora或联合Agent已部署证明。"
+    },
+    {
+      "id": "BA02-P03-S02",
+      "scope": "来源材料已明确业务对象、主要动作和预期价值；原型、试点或生产状态及覆盖范围均待项目台账核实。 本轮案例补充范围：单活动BI复盘；未证明积分动态规则、自动推荐和触达闭环；不据此升级整卡成熟度或AI实施状态。",
+      "collaboration": "本轮案例的人工与程序基础、AI增强建议分别为：人工：核实参与分母和成本归因，审核权益规则、公平性及预算，不因年龄偏好直接自动投放。 程序/规则：关联权益发放使用与资产变化，计算响应及成本比；增量因果需要另设对照。 分析模型：可建议偏好或增量效果模型，当前只有BI分群观察。 大模型：建议生成复盘草稿并提示分母和归因限制。 Agent：可建议编排复盘材料，不自动改变积分政策或发放权益。 本轮不构成Dora或联合Agent已部署证明。"
+    },
+    {
+      "id": "BA13-P01-S02",
+      "scope": "来源材料已明确业务对象、主要动作和预期价值；原型、试点或生产状态及覆盖范围均待项目台账核实。 本轮案例补充范围：质量现状、变化和机构对比；预测/情景推演及处置流转未证实；不据此升级整卡成熟度或AI实施状态。",
+      "collaboration": "本轮案例的人工与程序基础、AI增强建议分别为：人工：核实贷款分类、口径及重点风险，决定核查与管控；异常数据退回核对，不自动调分类或处置。 程序/规则：计算质量指标、完成率与机构分布并提供明细比较，正式分类规则需银行确认。 分析模型：可选趋势推演另行验证，本批不声称部署。 大模型：建议生成变化摘要和核查提纲，不能定性风险成因。 Agent：可建议汇集风险材料；正式处置转交授权风控流程。 本轮不构成Dora或联合Agent已部署证明。"
+    },
+    {
+      "id": "BA02-P02-S04",
+      "scope": "已有理财规模、客户、产品、渠道和风险分析方案；适当性联动和结果回录仍需验证。 本轮案例补充范围：1张2024年活动复盘截图的已核信息，只补理财卡的渠道复盘模块，不是运行Demo或外呼系统验收；不据此升级整卡成熟度或AI实施状态。",
+      "collaboration": "本轮案例的人工与程序基础、AI增强建议分别为：人工：确认统计口径、客户授权和频次，复核成交归属及截图矛盾，决定接续策略；分母冲突先停用争议比例。 程序/规则：关联名单与各波次结果、计算漏斗和交易汇总；不把重复触达或交易笔数误作去重客户。 分析模型：可另做对照或增量归因，截图无因果模型证据；80%置信度方法未说明。 大模型：建议总结漏斗和数据异常，不自行解释为AI增量收益。 Agent：可建议整理复盘与待核问题；外呼短信和跟进下发均需授权与人工确认，不能自动批量触达。 本轮不构成Dora或联合Agent已部署证明。"
+    }
+  ]
+};
+    knowhowPilotPreview.newScenes.forEach(item=>{
+      if(!domains.some(domain=>domain.sections.some(section=>section.scenes.some(scene=>scene.id===item.scene.id)))) addScene(item.domainId,item.section,item.scene);
+    });
+    knowhowPilotPreview.enrichments.forEach(item=>{
+      const scene=domains.flatMap(domain=>domain.sections.flatMap(section=>section.scenes)).find(scene=>scene.id===item.id);
+      if(scene){scene.scope=item.scope;scene.collaboration=item.collaboration;}
+    });
+
     const state={domain:'BA01',type:'all',ability:'all',query:''};
     let lastSceneTrigger=null;
-    const allScenes=()=>domains.flatMap(d=>d.sections.flatMap(sec=>sec.scenes.map(s=>({...s,domainId:d.id,domainName:d.name,l2Id:sec.id,l2Name:sec.name,group:sec.group||null}))));
+    const allScenes=()=>domains.flatMap(d=>d.sections.flatMap(sec=>sec.scenes.map(s=>({...displayScene(s),domainId:d.id,domainName:d.name,l2Id:sec.id,l2Name:sec.name,group:sec.group||null}))));
     const matches=s=>(state.type==='all'||(state.type==='flagship'&&s.flagship)||(state.type==='benchmark'&&s.benchmark)||(state.type==='digitalTalent'&&s.digitalTalent))&&(state.ability==='all'||['done','partial'].includes(s.abilities[state.ability]));
     function domainCount(d){return d.sections.reduce((n,s)=>n+s.scenes.length,0)}
     function init(){
@@ -2858,6 +3526,7 @@
       return `<section class="l2-section"><div class="l2-head"><span class="l2-code">${sec.id}</span><h3>${sec.name}</h3><span class="l2-count">${list.length} 个场景</span></div><p class="l2-desc">${sec.desc}</p>${group?`<div class="l3-group"><div class="l3-intro"><div><div class="l3-kicker"><span>${sec.group.id} · L3 场景群</span>${sec.group.flagship?'<span class="flag-tag">王牌场景</span>':''}</div><h4>${sec.group.title}</h4><p>${sec.group.desc}</p></div><div class="closure">${sec.group.closure.map(x=>`<span>${x}</span>`).join('')}</div></div><div class="scene-grid">${cards}</div></div>`:`<div class="scene-grid">${cards}</div>`}</section>`;
     }
     function cardTemplate(s){
+      s={...s,definition:escapeAssetHTML(s.definition),before:escapeAssetHTML(s.before),after:escapeAssetHTML(s.after),feedback:escapeAssetHTML(s.feedback),metrics:s.metrics.map(metric=>({...metric,text:escapeAssetHTML(metric.text)}))};
       const values=s.metrics.map(x=>`<li>${x.text}</li>`).join('');
       return `<button class="scene-card" data-scene="${s.id}" aria-label="查看${s.title}详情"><div class="scene-card__head"><div class="scene-card__top"><span class="scene-type">L4 · 具体场景</span>${s.digitalTalent?'<span class="scene-source-tag">数字人才</span>':''}</div><h4>${s.title}</h4><p class="scene-definition">${s.definition}</p></div><div class="scene-card__body"><div class="ba-row before"><span>Before</span><div>${s.before}</div></div><div class="ba-row after"><span>After</span><div>${s.after}</div></div><blockquote class="voice"><span class="card-section-label">用户反馈 · 预期体验</span><q>${s.feedback.replace(/[“”]/g,'')}</q></blockquote><div class="value-summary"><span class="card-section-label">核心价值</span><ol>${values}</ol></div></div><div class="scene-card__foot"><span class="open">查看详情 →</span></div></button>`;
     }
@@ -2896,7 +3565,7 @@ const assetCloudConfig={url:'https://aziiqntgqsrxovdgydwi.supabase.co',publishab
           headers:{apikey:assetCloudConfig.publishableKey,'Content-Type':'application/json',...options.headers}
         });
         if(!response.ok){
-          const error=new Error(response.status===409?'链接已被其他人更新。请先保留本次填写，取消后重新编辑。':response.status===400?'链接内容未通过校验，请检查显示文字和地址。':'暂时无法连接共享服务，请稍后重试。');
+          const error=new Error(response.status===409?'内容已被其他人更新。请先保留本次填写，取消后重新编辑。':response.status===400?'填写内容未通过校验，请检查后重试。':'暂时无法连接共享服务，请稍后重试。');
           error.status=response.status;throw error;
         }
         return await response.json();
@@ -2912,10 +3581,9 @@ const assetCloudConfig={url:'https://aziiqntgqsrxovdgydwi.supabase.co',publishab
       if(currentDetailScene&&!assetEditing)renderAssetPanel();
       assetRefreshPromise=(async()=>{
         try{
-          const rows=await assetCloudRequest('scene_map_assets?select=scene_id,links,revision,updated_at&limit=100');
+          const rows=await assetCloudRequest('scene_map_assets?select=scene_id,links,revision,updated_at&limit=1000');
           if(!Array.isArray(rows))throw new Error('共享数据格式不正确，请稍后重试。');
           const next=new Map(rows.map(row=>{const cleaned=cleanAssetRow(row);return [cleaned.scene_id,cleaned]}));
-          if(allScenes().some(scene=>!next.has(scene.id)))throw new Error('部分场景尚未注册到共享服务，请稍后重试。');
           sharedAssetRows=next;assetCloudState='ready';return true;
         }catch(error){assetCloudState='error';assetCloudMessage=error.message;return false}
         finally{if(currentDetailScene&&!assetEditing)renderAssetPanel()}
@@ -2923,7 +3591,7 @@ const assetCloudConfig={url:'https://aziiqntgqsrxovdgydwi.supabase.co',publishab
       return assetRefreshPromise;
     }
     function assetPanelTemplate(scene){
-      const links=sharedAssetRows.get(scene.id)?.links||{};
+      const registered=sharedAssetRows.has(scene.id),links=sharedAssetRows.get(scene.id)?.links||{};
       const externalIcon='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4h6v6M20 4 10 14M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       const cards=assetTypes.map((type,index)=>{
         const link=links[type.key],label=link?.label||type.label;
@@ -2933,8 +3601,8 @@ const assetCloudConfig={url:'https://aziiqntgqsrxovdgydwi.supabase.co',publishab
           link?`<a class="asset-link" href="${escapeAssetHTML(link.url)}" target="_blank" rel="noopener noreferrer"><span class="asset-link__label">${escapeAssetHTML(label)}</span>${externalIcon}</a>`:`<span class="asset-empty">${assetCloudState==='loading'?'正在加载链接…':assetCloudState==='error'&&!sharedAssetRows.has(scene.id)?'链接暂不可用':'未配置链接'}</span>`;
         return `<article class="asset"><span class="asset-type">${type.key}</span><b class="asset-status">${status}</b>${content}</article>`;
       }).join('');
-      const notice=assetEditing||assetCloudState==='ready'?assetNotice:assetCloudState==='loading'?'正在同步链接…':assetCloudMessage;
-      const action=assetEditing?'':assetCloudState==='ready'?'<button type="button" class="asset-edit-button" id="editAssetLinks">编辑链接</button>':assetCloudState==='error'?'<button type="button" class="asset-edit-button" id="retryAssetLinks">重试连接</button>':'';
+      const notice=assetCloudState==='ready'&&!registered?'该场景尚未登记到共享服务，其他场景可正常编辑。':assetEditing||assetCloudState==='ready'?assetNotice:assetCloudState==='loading'?'正在同步链接…':assetCloudMessage;
+      const action=assetEditing?'':assetCloudState==='ready'&&registered?'<button type="button" class="asset-edit-button" id="editAssetLinks">编辑链接</button>':assetCloudState==='error'?'<button type="button" class="asset-edit-button" id="retryAssetLinks">重试连接</button>':'';
       return `<div class="asset-panel-heading"><h3 class="detail-section__title">场景资产与能力边界</h3><div class="asset-panel-actions"><span class="asset-notice ${assetNoticeIsError||assetCloudState==='error'?'is-error':''}" role="status" aria-live="polite">${escapeAssetHTML(notice)}</span>${action}</div></div>${assetEditing?`<form class="asset-editor" id="assetEditor" novalidate><div class="asset-grid">${cards}</div><div class="asset-editor-actions"><button type="button" class="asset-cancel-button" id="cancelAssetLinks">取消</button><button type="submit" class="asset-save-button">保存链接</button></div></form>`:`<div class="asset-grid">${cards}</div>`}`;
     }
     function renderAssetPanel(){
@@ -2946,7 +3614,7 @@ const assetCloudConfig={url:'https://aziiqntgqsrxovdgydwi.supabase.co',publishab
       panel.addEventListener('click',async event=>{
         if(assetSaving)return;
         if(event.target.closest('#editAssetLinks')){
-          if(assetCloudState!=='ready')return;
+          if(assetCloudState!=='ready'||!sharedAssetRows.has(currentDetailScene.id))return;
           assetEditRevision=sharedAssetRows.get(currentDetailScene.id).revision;
           assetEditing=true;assetNotice='';assetNoticeIsError=false;renderAssetPanel();document.getElementById('asset-label-0').focus({preventScroll:true});
         }else if(event.target.closest('#cancelAssetLinks')){
@@ -3006,27 +3674,149 @@ const assetCloudConfig={url:'https://aziiqntgqsrxovdgydwi.supabase.co',publishab
         }finally{assetSaving=false}
       });
     }
+    // Shared scene copy: one field model for cards, brief, comparison and value.
+    const contentFields={definition:'这是什么',before:'Before · 解决什么问题',after:'After · 现在怎么做',efficiency:'效率价值',quality:'质量/风险价值',management:'经营/管理价值',feedback:'用户反馈 · 预期体验'};
+    const contentGroups={overview:['definition','before','efficiency','quality','management'],change:['before','after'],value:['efficiency','quality','management','feedback']};
+    const contentTitles={overview:'30 秒场景概览',change:'同一件事，现在怎么做',value:'业务价值与用户体验'};
+    const metricContentKeys=['efficiency','quality','management'];
+    let sharedContentRows=new Map(),contentCloudState='loading',contentCloudMessage='',contentRefreshPromise=null;
+    let contentEditor=null,contentSaving=false,contentNotice='',contentNoticeSection='';
+    function cleanContentRow(row){
+      if(!row||typeof row.scene_id!=='string'||!Number.isSafeInteger(row.revision)||row.revision<0||!row.content||Array.isArray(row.content)||typeof row.content!=='object')throw new Error('共享文案格式不正确，请重试。');
+      const content={};
+      Object.keys(contentFields).forEach(key=>{const value=row.content[key];if(value!==undefined){if(typeof value!=='string'||!value.trim()||value.length>2000)throw new Error('共享文案格式不正确，请重试。');content[key]=value;}});
+      return {...row,content};
+    }
+    function displayScene(scene){
+      const copy=sharedContentRows.get(scene.id)?.content||{};
+      return {...scene,...Object.fromEntries(['definition','before','after','feedback'].filter(key=>copy[key]!==undefined).map(key=>[key,copy[key]])),metrics:scene.metrics.map((metric,index)=>({...metric,text:copy[metricContentKeys[index]]??metric.text}))};
+    }
+    function contentFieldValues(scene){
+      return {definition:scene.definition,before:scene.before,after:scene.after,feedback:scene.feedback,efficiency:scene.metrics[0].text,quality:scene.metrics[1].text,management:scene.metrics[2].text};
+    }
+    function contentViewTemplate(scene,section){
+      const esc=escapeAssetHTML;
+      if(section==='overview')return `<div class="brief-grid"><article class="brief-item"><h4>💡 这是什么</h4><p>${esc(scene.definition)}</p></article><article class="brief-item"><h4>🎯 解决什么问题</h4><p>${esc(scene.before)}</p></article><article class="brief-item"><h4>📈 带来什么价值</h4><p>${scene.metrics.map(metric=>esc(metric.text)).join('；')}</p></article></div><p class="brief-note">摘要基于当前场景台账，未核实成效不作为已实现结果。</p>`;
+      if(section==='change')return `<div class="change-grid"><article class="change before"><span class="change__label">◀ BEFORE · 过去</span><p>${esc(scene.before)}</p></article><article class="change after"><span class="change__label">▶ AFTER · 现在</span><p>${esc(scene.after)}</p></article></div>`;
+      return `<div class="value-grid">${scene.metrics.map(metric=>`<article class="detail-value"><span>${esc(metric.dimension)}</span><p>${esc(metric.text)}</p></article>`).join('')}</div><blockquote class="detail-feedback"><span>用户反馈 · 预期体验</span><p>${esc(scene.feedback)}</p></blockquote>`;
+    }
+    function contentPanelTemplate(scene,section){
+      const editor=contentEditor?.sceneId===scene.id&&contentEditor.section===section?contentEditor:null;
+      const registered=sharedContentRows.has(scene.id),ready=contentCloudState==='ready'&&registered;
+      let message=contentNoticeSection===section?contentNotice:'';
+      if(!message&&contentCloudState==='loading')message='正在同步内容…';
+      if(!message&&contentCloudState==='error')message=contentCloudMessage;
+      if(!message&&contentCloudState==='ready'&&!registered)message='该场景尚未登记到共享服务，其他场景可正常编辑。';
+      const action=editor?'':ready?`<button type="button" class="asset-edit-button" data-edit-content="${section}" ${contentEditor?'disabled':''}>编辑${section==='overview'?'概览':section==='change'?'对照':'价值与反馈'}</button>`:`<button type="button" class="asset-edit-button" data-retry-content>重试连接</button>`;
+      const heading=`<div class="asset-panel-heading"><h3 class="detail-section__title">${contentTitles[section]}</h3><div class="asset-panel-actions"><span class="asset-notice ${contentCloudState==='error'||editor?.error?'is-error':''}" role="status" aria-live="polite">${escapeAssetHTML(message)}</span>${action}</div></div>`;
+      if(!editor)return heading+contentViewTemplate(scene,section);
+      return heading+`<form class="content-editor" data-content-form="${section}" novalidate>${contentGroups[section].map(key=>`<label for="content-${key}">${contentFields[key]}<textarea id="content-${key}" name="${key}" rows="3" maxlength="2000" required>${escapeAssetHTML(editor.draft[key])}</textarea></label>`).join('')}<div class="asset-editor-actions"><button type="button" class="asset-cancel-button" data-cancel-content>取消</button><button type="submit" class="asset-save-button">保存内容</button></div></form>`;
+    }
+    function renderContentPanels(){
+      if(!currentDetailScene)return;
+      const fresh=allScenes().find(scene=>scene.id===currentDetailScene.id);if(!fresh)return;
+      currentDetailScene=fresh;
+      Object.keys(contentGroups).forEach(section=>{const panel=document.getElementById('sceneContent-'+section);if(panel&&!(contentEditor?.section===section))panel.innerHTML=contentPanelTemplate(fresh,section);});
+      const summary=document.querySelector('.detail-hero__summary');if(summary)summary.textContent=fresh.definition;
+    }
+    function renderContentEditor(){
+      if(!contentEditor||!currentDetailScene)return;
+      document.getElementById('sceneContent-'+contentEditor.section).innerHTML=contentPanelTemplate(currentDetailScene,contentEditor.section);
+    }
+    function refreshSharedSceneContent(){
+      if(contentRefreshPromise)return contentRefreshPromise;
+      contentCloudState='loading';contentCloudMessage='';renderContentPanels();
+      contentRefreshPromise=(async()=>{
+        try{
+          const rows=await assetCloudRequest('scene_map_content?select=scene_id,content,revision,updated_at&limit=1000');
+          if(!Array.isArray(rows))throw new Error('共享文案格式不正确，请重试。');
+          const next=new Map(rows.map(row=>{const clean=cleanContentRow(row);return [clean.scene_id,clean]}));
+          sharedContentRows=next;contentCloudState='ready';render();return true;
+        }catch(error){contentCloudState='error';contentCloudMessage=error.status===404?'共享内容服务尚未启用，请完成项目升级后重试。':error.message;return false;}
+        finally{renderContentPanels();}
+      })().finally(()=>{contentRefreshPromise=null;});
+      return contentRefreshPromise;
+    }
+    function bindContentPanels(){
+      document.getElementById('detailBody').addEventListener('click',async event=>{
+        if(contentSaving)return;
+        const edit=event.target.closest('[data-edit-content]');
+        if(edit){
+          if(contentEditor||contentCloudState!=='ready'||!sharedContentRows.has(currentDetailScene.id))return;
+          const section=edit.dataset.editContent,values=contentFieldValues(currentDetailScene);
+          contentEditor={sceneId:currentDetailScene.id,section,revision:sharedContentRows.get(currentDetailScene.id).revision,initial:values,draft:{...values},error:false};contentNotice='';contentNoticeSection=section;
+          renderContentPanels();renderContentEditor();document.getElementById('content-'+contentGroups[section][0]).focus({preventScroll:true});
+        }else if(event.target.closest('[data-cancel-content]')){
+          const {section,sceneId}=contentEditor;contentEditor=null;contentNotice='';renderContentPanels();
+          await refreshSharedSceneContent();
+          if(currentDetailScene?.id===sceneId&&!contentEditor)document.querySelector(`[data-edit-content="${section}"]`)?.focus({preventScroll:true});
+        }else if(event.target.closest('[data-retry-content]'))await refreshSharedSceneContent();
+      });
+      document.getElementById('detailBody').addEventListener('input',event=>{
+        if(contentEditor&&event.target.closest('[data-content-form]'))contentEditor.draft[event.target.name]=event.target.value;
+      });
+      document.getElementById('detailBody').addEventListener('submit',async event=>{
+        if(!event.target.matches('[data-content-form]'))return;
+        event.preventDefault();if(contentSaving||!contentEditor)return;
+        const editor=contentEditor,form=event.target,changes={};
+        for(const key of contentGroups[editor.section]){
+          const value=editor.draft[key].trim();
+          if(!value||value.length>2000){contentNotice='每项请填写1至2000字内容。';contentNoticeSection=editor.section;editor.error=true;renderContentEditor();document.getElementById('content-'+key).focus({preventScroll:true});return;}
+          if(value!==editor.initial[key])changes[key]=value;
+        }
+        if(!Object.keys(changes).length){contentEditor=null;contentNotice='内容未变化';contentNoticeSection=editor.section;renderContentPanels();return;}
+        contentSaving=true;form.querySelectorAll('textarea,button').forEach(element=>element.disabled=true);form.querySelector('[type="submit"]').textContent='正在保存…';
+        try{
+          const result=await assetCloudRequest('rpc/scene_map_save_content',{method:'POST',body:JSON.stringify({p_scene_id:editor.sceneId,p_expected_revision:editor.revision,p_changes:changes})});
+          const row=cleanContentRow(Array.isArray(result)?result[0]:result);if(row.scene_id!==editor.sceneId)throw new Error('返回场景不匹配，请重新加载核对。');
+          sharedContentRows.set(row.scene_id,row);render();
+          if(contentEditor!==editor)return;
+          contentEditor=null;contentNotice='内容已共享保存';contentNoticeSection=editor.section;renderContentPanels();
+          document.querySelector(`[data-edit-content="${editor.section}"]`)?.focus({preventScroll:true});
+        }catch(error){
+          if(contentEditor!==editor)return;
+          editor.error=true;contentNoticeSection=editor.section;contentNotice=error.status===409?'内容已被其他人更新，本次填写已保留。请复制后取消，再重新打开编辑。':error.message;renderContentEditor();
+        }finally{contentSaving=false;}
+      });
+    }
+
+    function agentContextTemplate(s,gatewayLabel){
+      const fields=[
+        ['role','主要使用角色',s.role||'待确认'],
+        ['trigger','触发时点',s.trigger||'待确认'],
+        ['task','业务任务',s.task||s.definition],
+        ['dataScope','主要数据范围',s.dataScope||'待确认'],
+        ['outputs','输出结果',s.outputs||'待确认'],
+        ['collaboration','Agent 协作',s.collaboration||'待确认'],
+        ['manualCheck','人工确认点',s.manualCheck||'正式结论和后续动作由业务人员确认'],
+        ['id','场景编码',s.id],
+        ['version','场景版本',s.version],
+        ['path','所属路径',`${s.domainId} / ${s.l2Id}${s.group?` / ${s.group.id}`:''}`],
+        ['values','价值维度',s.values.join('、')],
+        ['gateway','资产网关',gatewayLabel]
+      ];
+      return `<aside class="agent-context" aria-label="Agent 场景上下文" data-scene-id="${escapeAssetHTML(s.id)}"><h4 class="agent-context__title">AGENT CONTEXT · 场景上下文</h4><dl class="supplement-table">${fields.map(([key,label,value])=>`<div class="supplement-row ${key==='collaboration'?'supplement-row--wide':''}" data-field="${key}"><dt>${label}</dt><dd>${escapeAssetHTML(value)}</dd></div>`).join('')}</dl></aside>`;
+    }
     function openDetail(s){
-      currentDetailScene=s;assetEditorEpoch++;assetEditing=false;assetNotice='';assetNoticeIsError=false;
+      contentEditor=null;contentNotice='';contentNoticeSection='';
+      s=displayScene(s);currentDetailScene=s;assetEditorEpoch++;assetEditing=false;assetNotice='';assetNoticeIsError=false;
       const questionText={D01:'数据是多少、在哪里、怎么样',D02:'问题在哪里、为什么波动',D03:'数据从哪来、结论如何追溯',D04:'结论如何进入行动并获得反馈'};
       const abilityDetail=Object.entries(s.abilities).map(([k,v])=>`<article class="ability-step ${v}"><b>${k}</b><h4>${abilityNames[k]}</h4><p>${questionText[k]}</p><span class="status-label">${statusNames[v]}</span></article>`).join('');
-      const valueDetail=s.metrics.map(x=>`<article class="detail-value"><span>${x.dimension}</span><p>${x.text}</p></article>`).join('');
       const gatewayLabel=s.gateway?'高度依赖历史报表资产':'非必需能力';
-      const valueBrief=s.metrics.map(x=>x.text).join('；');
       document.getElementById('detailBody').innerHTML=`
         <header class="detail-hero">
           <div class="detail-hero__badges"><span class="detail-pill detail-pill--blue">L4 具体场景</span>${s.digitalTalent?'<span class="detail-pill detail-pill--violet">数字人才</span>':''}${s.group?.flagship?'<span class="detail-pill detail-pill--violet">王牌场景群</span>':''}${s.gateway?'<span class="detail-pill detail-pill--dark">资产网关</span>':''}</div>
           <h2>${s.title}</h2>
-          <p class="detail-hero__summary">${s.definition}</p>
+          <p class="detail-hero__summary">${escapeAssetHTML(s.definition)}</p>
           <div class="detail-hero__meta"><span class="detail-pill">业务域：${s.domainName}</span><span class="detail-pill">业务环节：${s.l2Name}</span><span class="detail-pill">AI 参与：${s.decision}</span><span class="detail-pill">成熟度：${s.maturity}</span></div>
         </header>
         <nav class="detail-tabs" aria-label="详情章节"><button class="detail-tab active" data-detail-target="detail-overview">场景概览</button><button class="detail-tab" data-detail-target="detail-change">Before / After</button><button class="detail-tab" data-detail-target="detail-ability">能力深度</button><button class="detail-tab" data-detail-target="detail-value">业务价值</button><button class="detail-tab" data-detail-target="detail-resource">资产与边界</button></nav>
-        <section class="detail-section" id="detail-overview"><p class="detail-section__eyebrow">SCENE BRIEF</p><h3 class="detail-section__title">30 秒场景概览</h3><div class="brief-grid"><article class="brief-item"><h4>💡 这是什么</h4><p>${s.definition}</p></article><article class="brief-item"><h4>🎯 解决什么问题</h4><p>${s.before}</p></article><article class="brief-item"><h4>📈 带来什么价值</h4><p>${valueBrief}</p></article></div><p class="brief-note">摘要基于当前场景台账，未核实成效不作为已实现结果。</p></section>
-        <section class="detail-section" id="detail-change"><p class="detail-section__eyebrow">BEFORE / AFTER</p><h3 class="detail-section__title">同一件事，现在怎么做</h3><div class="change-grid"><article class="change before"><span class="change__label">◀ BEFORE · 过去</span><p>${s.before}</p></article><article class="change after"><span class="change__label">▶ AFTER · 现在</span><p>${s.after}</p></article></div></section>
+        <section class="detail-section" id="detail-overview"><p class="detail-section__eyebrow">SCENE BRIEF</p><div id="sceneContent-overview">${contentPanelTemplate(s,'overview')}</div></section>
+        <section class="detail-section" id="detail-change"><p class="detail-section__eyebrow">BEFORE / AFTER</p><div id="sceneContent-change">${contentPanelTemplate(s,'change')}</div></section>
         <section class="detail-section" id="detail-ability"><p class="detail-section__eyebrow">AI CAPABILITY</p><h3 class="detail-section__title">四问能力深度</h3><div class="ability-detail">${abilityDetail}</div></section>
-        <section class="detail-section" id="detail-value"><p class="detail-section__eyebrow">BUSINESS VALUE</p><h3 class="detail-section__title">业务价值与用户体验</h3><div class="value-grid">${valueDetail}</div><blockquote class="detail-feedback"><span>用户反馈 · 预期体验</span><p>${s.feedback}</p></blockquote></section>
-        <section class="detail-section" id="detail-resource"><p class="detail-section__eyebrow">ASSETS & GOVERNANCE</p><div id="sceneAssetPanel">${assetPanelTemplate(s)}</div><div class="scope-stack"><div class="scope"><strong>当前实现范围</strong><p>${s.scope}</p></div><div class="scope"><strong>能力与责任边界</strong><p>${s.boundary||'页面内容用于场景介绍和需求讨论。正式数据口径、查询权限、归因结论、对外材料和任务流转均需由业务责任人确认；局部实现不代表全量指标和全流程已完成。'}</p></div></div><div class="supplement-table" aria-label="补充信息"><div class="supplement-row"><span>主要使用角色</span><b>${s.role||'待确认'}</b></div><div class="supplement-row"><span>触发时点</span><b>${s.trigger||'待确认'}</b></div><div class="supplement-row"><span>业务任务</span><b>${s.task||s.definition}</b></div><div class="supplement-row"><span>主要数据范围</span><b>${s.dataScope||'待确认'}</b></div><div class="supplement-row"><span>输出结果</span><b>${s.outputs||'待确认'}</b></div><div class="supplement-row"><span>Agent 协作</span><b>${s.collaboration||'待确认'}</b></div><div class="supplement-row"><span>人工确认点</span><b>${s.manualCheck||'正式结论和后续动作由业务人员确认'}</b></div><div class="supplement-row"><span>场景编码</span><b>${s.id}</b></div><div class="supplement-row"><span>场景版本</span><b>${s.version}</b></div><div class="supplement-row"><span>所属路径</span><b>${s.domainId} / ${s.l2Id}${s.group?` / ${s.group.id}`:''}</b></div><div class="supplement-row"><span>价值维度</span><b>${s.values.join('、')}</b></div><div class="supplement-row"><span>资产网关</span><b>${gatewayLabel}</b></div></div></section>`;
-      const layer=document.getElementById('detailLayer');const page=document.getElementById('detailPage');page.scrollTop=0;bindDetailTabs(page);bindAssetPanel();layer.classList.add('open');layer.setAttribute('aria-hidden','false');document.body.classList.add('body-locked');document.getElementById('detailBack').focus();refreshSharedAssetLinks();
+        <section class="detail-section" id="detail-value"><p class="detail-section__eyebrow">BUSINESS VALUE</p><div id="sceneContent-value">${contentPanelTemplate(s,'value')}</div></section>
+        <section class="detail-section" id="detail-resource"><p class="detail-section__eyebrow">ASSETS & GOVERNANCE</p><div id="sceneAssetPanel">${assetPanelTemplate(s)}</div><div class="scope-stack"><div class="scope"><strong>当前实现范围</strong><p>${s.scope}</p></div><div class="scope"><strong>能力与责任边界</strong><p>${s.boundary||'页面内容用于场景介绍和需求讨论。正式数据口径、查询权限、归因结论、对外材料和任务流转均需由业务责任人确认；局部实现不代表全量指标和全流程已完成。'}</p></div></div>${agentContextTemplate(s,gatewayLabel)}</section>`;
+      const layer=document.getElementById('detailLayer');const page=document.getElementById('detailPage');page.scrollTop=0;bindDetailTabs(page);bindAssetPanel();layer.classList.add('open');layer.setAttribute('aria-hidden','false');document.body.classList.add('body-locked');document.getElementById('detailBack').focus();refreshSharedAssetLinks();refreshSharedSceneContent();
     }
     function bindDetailTabs(page){
       const tabs=[...page.querySelectorAll('[data-detail-target]')],sections=tabs.map(tab=>document.getElementById(tab.dataset.detailTarget));
@@ -3034,8 +3824,8 @@ const assetCloudConfig={url:'https://aziiqntgqsrxovdgydwi.supabase.co',publishab
       tabs.forEach(tab=>tab.addEventListener('click',()=>{const section=document.getElementById(tab.dataset.detailTarget);activate(tab.dataset.detailTarget);page.scrollTo({top:section.offsetTop-112,behavior:'smooth'})}));
       page.onscroll=()=>{let current=sections[0];sections.forEach(section=>{if(section.offsetTop-130<=page.scrollTop)current=section});activate(current.id)};
     }
-    function closeDetail(){const layer=document.getElementById('detailLayer');if(!layer.classList.contains('open'))return;currentDetailScene=null;assetEditorEpoch++;assetEditing=false;layer.classList.remove('open');layer.setAttribute('aria-hidden','true');document.body.classList.remove('body-locked');lastSceneTrigger?.focus()}
-    init();refreshSharedAssetLinks();
+    function closeDetail(){const layer=document.getElementById('detailLayer');if(!layer.classList.contains('open'))return;if(contentSaving)return;if(contentEditor&&!confirm('还有未保存的内容，关闭后将放弃本次填写。继续关闭？'))return;const closingId=currentDetailScene?.id;contentEditor=null;currentDetailScene=null;assetEditorEpoch++;assetEditing=false;layer.classList.remove('open');layer.setAttribute('aria-hidden','true');document.body.classList.remove('body-locked');(document.querySelector(`[data-scene="${closingId}"]`)||lastSceneTrigger)?.focus()}
+    bindContentPanels();init();refreshSharedAssetLinks();refreshSharedSceneContent();
   </script>
 </body>
 </html>
