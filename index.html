@@ -121,7 +121,7 @@
     .content-editor textarea:disabled,.content-editor button:disabled,.asset-edit-button:disabled{opacity:.65;cursor:wait}
     .brief-item p,.change p,.detail-value p,.detail-feedback p,.scene-definition,.ba-row div,.voice q,.value-summary li{white-space:pre-wrap;overflow-wrap:anywhere}
     @media(max-width:560px){#detail-ability .ability-detail{grid-template-columns:repeat(2,minmax(0,1fr))}#detail-ability .ability-step{padding:11px}#detail-ability .ability-step h4{font-size:14px}.content-editor .asset-editor-actions{flex-wrap:wrap}}
-    .catalog-status{font-size:11px;color:var(--muted);margin:8px 0 0;overflow-wrap:anywhere}
+    .content-head .catalog-status{font-size:11px;color:var(--muted);margin:8px 0 0;overflow-wrap:anywhere}
     .pipeline-guide{max-width:1380px;margin:16px auto 30px;padding:0 28px;color:var(--muted);font-size:12px;line-height:1.8}
     .pipeline-guide summary{cursor:pointer;color:var(--ink);font-weight:600}
     .pipeline-guide__batches{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0}
@@ -344,7 +344,7 @@ const assetCloudConfig={url:'https://aziiqntgqsrxovdgydwi.supabase.co',publishab
       const externalIcon='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4h6v6M20 4 10 14M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       const cards=assetTypes.map((type,index)=>{
         const link=links[type.key],label=link?.label||type.label;
-        const status=escapeAssetHTML(scene.assets?.[type.key]||'待补充');
+        const status=scene.assets?.[type.key]||'待补充';
         const content=assetEditing?
           `<label for="asset-label-${index}">显示文字<input id="asset-label-${index}" name="label-${index}" type="text" maxlength="120" value="${escapeAssetHTML(label)}" placeholder="${type.label}" autocomplete="off"></label><label for="asset-url-${index}">链接地址<input id="asset-url-${index}" name="url-${index}" type="url" inputmode="url" maxlength="8192" value="${escapeAssetHTML(link?.url||'')}" placeholder="https://…" autocomplete="off" aria-describedby="asset-error-${index}"></label><p class="asset-field-error" id="asset-error-${index}" role="alert" hidden></p>${link?`<button type="button" class="asset-remove-button" data-remove-asset="${index}">移除链接</button>`:''}`:
           link?`<a class="asset-link" href="${escapeAssetHTML(link.url)}" target="_blank" rel="noopener noreferrer"><span class="asset-link__label">${escapeAssetHTML(label)}</span>${externalIcon}</a>`:`<span class="asset-empty">${assetCloudState==='loading'?'正在加载链接…':assetCloudState==='error'&&!sharedAssetRows.has(scene.id)?'链接暂不可用':'未配置链接'}</span>`;
