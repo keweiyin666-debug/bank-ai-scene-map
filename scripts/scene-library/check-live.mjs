@@ -33,7 +33,7 @@ if(process.argv.includes('--snapshot')){
   validatePublishedCatalog(row.payload);
   const manifest=JSON.parse(fs.readFileSync(dir+'manifest.json','utf8'));
   const hash=createHash('sha256').update(stableJSON(row.payload)).digest('hex');
-  if(hash!==manifest.catalogSha256||hash!==row.content_sha256||row.release_id!==manifest.releaseId)throw Error('Backend differs from release');
+  if(hash!==manifest.catalogSha256||hash!==row.content_sha256||row.release_id!==manifest.releaseId||row.schema_version!==manifest.schemaVersion||row.schema_version!==row.payload.schemaVersion)throw Error('Backend differs from release');
   const ids=row.payload.domains.flatMap(d=>d.sections.flatMap(s=>s.scenes)).map(s=>s.id).sort();
   for(const rows of [assets,content,tags])if(JSON.stringify(rows.map(r=>r.scene_id).sort())!==JSON.stringify(ids))throw Error('Catalog and shared record IDs differ');
   console.log(JSON.stringify({status:'PASS',release:row.release_id,scenes:ids.length,catalogSha256:hash,existingSharedData:'unchanged'}));

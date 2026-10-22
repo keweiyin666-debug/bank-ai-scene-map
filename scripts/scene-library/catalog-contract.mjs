@@ -7,8 +7,9 @@ export function validatePublishedCatalog(value) {
   const txt=(v,max=20000)=>{if(typeof v!=='string'||!v.trim()||v.length>max)fail('文本缺失或过长');};
   const list=(v,max=2000)=>{if(!Array.isArray(v)||v.length>max)fail('列表不合法');};
   const id=(v,prefix)=>{if(typeof v!=='string'||!/^BA\d{2}(?:-[A-Z0-9]+)*$/.test(v)||(prefix&&!v.startsWith(prefix+'-')))fail('编码不合法');};
-  obj(value,['schemaVersion','releaseId','pipeline','domains','departments','departmentRelations','departmentReview']);
-  if(![1,2].includes(value.schemaVersion))fail('不支持的数据版本');
+  obj(value,['schemaVersion','releaseId','pipeline','domains','departments','departmentRelations','departmentReview','audiences','audienceRelations','audienceReview']);
+  if(![1,2,3].includes(value.schemaVersion))fail('不支持的数据版本');
+  if(value.schemaVersion<3&&['audiences','audienceRelations','audienceReview'].some(k=>value[k]!==undefined))fail('旧版目录不能夹带行级使用对象');
   if(value.schemaVersion===1&&['departments','departmentRelations','departmentReview'].some(k=>value[k]!==undefined))fail('旧版目录不能夹带部门字段');
   if(!/^[a-zA-Z0-9._-]{1,80}$/.test(value.releaseId))fail('发布版本不合法');
   const p=value.pipeline;
@@ -65,7 +66,7 @@ export function validatePublishedCatalog(value) {
     }
   }
   if(!scenes.size||p.batches.reduce((n,b)=>n+b.newScenes,0)!==scenes.size)fail('来源净增数量与场景总数不一致');
-  if(value.schemaVersion===2){
+  if(value.schemaVersion>=2){
     list(value.departments,100);list(value.departmentRelations,10000);
     obj(value.departmentReview,['version','status','note','record']);
     for(const key of ['version','note','record'])txt(value.departmentReview[key]);
@@ -87,6 +88,28 @@ export function validatePublishedCatalog(value) {
       if(r.role==='owner'){
         if(owners.has(r.sceneId))fail('通用映射只能有一个建议主责');owners.add(r.sceneId);
       }
+    }
+  }
+  if(value.schemaVersion===3){
+    list(value.audiences,100);list(value.audienceRelations,10000);
+    obj(value.audienceReview,['version','status','note','record']);
+    for(const key of ['version','note','record'])txt(value.audienceReview[key]);
+    if(!['proposed','approved'].includes(value.audienceReview.status))fail('使用对象审核状态不合法');
+    const audiences=new Set(),pairs=new Set();
+    for(const audience of value.audiences){
+      obj(audience,['id','name','aliases','scope']);
+      if(!/^MG\d{2,3}$/.test(audience.id)||audiences.has(audience.id))fail('行级使用对象编码重复或不合法');
+      audiences.add(audience.id);txt(audience.name,120);txt(audience.scope);
+      list(audience.aliases,30);audience.aliases.forEach(alias=>txt(alias,120));
+    }
+    for(const relation of value.audienceRelations){
+      obj(relation,['sceneId','audienceId','users','condition','basis','status']);
+      if(!scenes.has(relation.sceneId)||!audiences.has(relation.audienceId))fail('使用对象关系悬空引用');
+      const pair=relation.sceneId+'/'+relation.audienceId;
+      if(pairs.has(pair))fail('使用对象与场景关系重复');pairs.add(pair);
+      txt(relation.users);txt(relation.condition);
+      if(!['material-fact','consultant-recommendation'].includes(relation.basis)||!['approved','proposed'].includes(relation.status))fail('使用对象关系依据或审核状态不合法');
+      if(relation.status==='approved'&&value.audienceReview.status!=='approved')fail('未经审核的使用对象关系不能发布');
     }
   }
   return value;

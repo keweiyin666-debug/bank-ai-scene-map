@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 const html=fs.readFileSync(fs.existsSync('output/bank-ai-scene-map/index.html')?'output/bank-ai-scene-map/index.html':'index.html','utf8');
 const script=html.match(/<script>([\s\S]*?)<\/script>/)[1];
 const handlers={},nodes=new Map();
-const node=id=>nodes.get(id)||nodes.set(id,{innerHTML:'',textContent:'',focus(){},addEventListener(type,handler){handlers[type]=handler;}}).get(id);
+const node=id=>nodes.get(id)||nodes.set(id,{innerHTML:'',textContent:'',classList:{toggle(){}},focus(){},addEventListener(type,handler){handlers[type]=handler;}}).get(id);
 const context=vm.createContext({console,URL,Map,Set,AbortController,setTimeout,clearTimeout,
   document:{getElementById:node,querySelector(){return null;},querySelectorAll(){return [];}}});
 vm.runInContext(script.replace('    startSceneLibrary();',''),context);

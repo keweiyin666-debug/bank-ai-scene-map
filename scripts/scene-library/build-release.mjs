@@ -51,14 +51,14 @@ fs.writeFileSync(siteOutput,html);
 const sql=`begin;
 create table if not exists public.scene_map_catalog (
   catalog_id text primary key check (catalog_id = 'bank-main'),
-  schema_version integer not null check (schema_version in (1,2)),
+  schema_version integer not null check (schema_version in (1,2,3)),
   release_id text not null,
   content_sha256 text not null check (content_sha256 ~ '^[a-f0-9]{64}$'),
   payload jsonb not null check (jsonb_typeof(payload) = 'object'),
   updated_at timestamptz not null default now()
 );
 alter table public.scene_map_catalog drop constraint if exists scene_map_catalog_schema_version_check;
-alter table public.scene_map_catalog add constraint scene_map_catalog_schema_version_check check (schema_version in (1,2));
+alter table public.scene_map_catalog add constraint scene_map_catalog_schema_version_check check (schema_version in (1,2,3));
 -- Serialize releases and refuse a stale SQL file overwriting a newer catalog.
 lock table public.scene_map_catalog in exclusive mode;
 do $release_guard$
@@ -132,5 +132,7 @@ const manifest={releaseId:catalog.releaseId,schemaVersion:catalog.schemaVersion,
 manifest.departments=catalog.departments?.length||0;
 manifest.departmentRelations=catalog.departmentRelations?.length||0;
 manifest.approvedRelations=catalog.departmentRelations?.filter(r=>r.status==='approved').length||0;
+manifest.audiences=catalog.audiences?.length||0;
+manifest.audienceRelations=catalog.audienceRelations?.length||0;
 fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 console.log(JSON.stringify(manifest,null,2));

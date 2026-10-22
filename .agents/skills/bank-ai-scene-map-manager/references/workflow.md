@@ -1,6 +1,6 @@
 # 银行 AI 场景地图管理工作流
 
-维护入口：先读00/16号规则。部门关系唯一源为`data/department-mapping.json`，修改获批关系后运行`rtk proxy node scripts/scene-library/refresh-departments.mjs`，再构建、三项回归、迁移前快照及三项同步。v0.7.0支持schema1/2；正式schema2前先部署兼容页面。GitHub公开归档由`package-project.mjs <checkout>`生成，根HTML继续作为Pages入口；不把本地原件、内部客户映射或共享覆盖快照加入仓库。公开源卡为审核投影，证据回收仍以本地完整源卡为准。
+维护入口：先读00/16号规则。落实部门唯一源为`data/department-mapping.json`，行级使用对象唯一源为`data/organization-audiences.json`；修改获批关系后运行`rtk proxy node scripts/scene-library/refresh-departments.mjs`，再构建、三项回归、迁移前快照及三项同步。v0.8.0支持schema1/2/3；先部署兼容页面，再发布schema3。导航为“按组织｜按业务域”，组织分列行级管理和业务/职能部门，L2由逐卡关系派生，不能将领导岗位当部门或把整个场景群默认提升为行级。GitHub公开归档由`package-project.mjs <checkout>`生成，根HTML继续作为Pages入口；不把本地原件、内部客户映射或共享覆盖快照加入仓库。公开源卡为审核投影，证据回收仍以本地完整源卡为准。
 
 ## 1. 材料入库
 

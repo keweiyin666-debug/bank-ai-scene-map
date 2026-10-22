@@ -6,6 +6,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const lib=path.join(root,'银行AI场景地图内容库');
 const read=p=>JSON.parse(fs.readFileSync(path.join(lib,p),'utf8'));
 const source=read('data/department-mapping.json'),catalog=read('data/published-catalog.json');
+const audienceSource=read('data/organization-audiences.json');
 const records=catalog.domains.flatMap(d=>d.sections.flatMap(sec=>sec.scenes.map(s=>({s,d,sec}))));
 const ids=new Set(records.map(({s})=>s.id)),departments=new Map(source.departments.map(d=>[d.id,d]));
 if(source.departments.length!==departments.size||!['proposed','approved'].includes(source.reviewStatus))throw Error('部门字典/审核状态不合法');
@@ -15,10 +16,13 @@ for(const a of source.assignments){
   assignments.set(a.sceneId,a);
 }
 if(assignments.size!==ids.size)throw Error('必须逐卡完成部门分析，不按业务域整体继承');
-catalog.schemaVersion=2;
+catalog.schemaVersion=3;
 catalog.departments=source.departments;
 catalog.departmentRelations=source.assignments.flatMap(a=>[a.owner,...a.collaborators].map((departmentId,i)=>({sceneId:a.sceneId,departmentId,role:i===0?'owner':'collaborator',basis:'consultant-recommendation',status:source.reviewStatus,condition:a.condition})));
 catalog.departmentReview={version:source.version,status:source.reviewStatus,note:source.basis,record:source.reviewRecord};
+catalog.audiences=audienceSource.audiences;
+catalog.audienceRelations=audienceSource.relations;
+catalog.audienceReview=audienceSource.review;
 fs.writeFileSync(path.join(lib,'data/published-catalog.json'),JSON.stringify(catalog,null,2)+'\n');
 const name=id=>departments.get(id).name;
 const row=text=>String(text).replace(/\|/g,'／').replace(/\n/g,' ');
@@ -27,6 +31,15 @@ for(const {s} of records){const a=assignments.get(s.id);lines.push(`| ${s.id} | 
 lines.push('','## 3. 部门 → L2 → 可选L3 → L4','', '以下为逐卡关系派生的审核索引；一个部门只显示实际关联的L4。括号里的主责/协同不是源客户组织事实。');
 for(const d of source.departments){const matches=records.filter(({s})=>{const a=assignments.get(s.id);return a.owner===d.id||a.collaborators.includes(d.id);});lines.push('',`### ${d.id} ${d.name}（${matches.length}个唯一L4）`,'');if(!matches.length){lines.push('无足够逐卡依据；保留字典，不在导航显示空项。');continue;}for(const {s,d:domain,sec} of matches){const a=assignments.get(s.id);lines.push(`- ${domain.name} / ${sec.id} ${sec.name}${sec.group?` / ${sec.group.id} ${sec.group.title}`:''} → ${s.id} ${s.title}（${a.owner===d.id?'主责':'协同'}）`);}}
 lines.push('','## 4. 来源与覆盖','',`- 核对范围：${records.length}张既有卡片，未新增、复制或重编号L4。`, `- 建议关系：${catalog.departmentRelations.length}条；关系数不等于场景数。`, '- 每条判断以对应独立源卡的使用角色、任务与人工确认点为依据；索引见[08号文件](08_L4场景卡片索引.md)。', '- 首版为通用银行职能映射，不是逐家银行组织树。条线归属不明确、跨行职责不同的条件逐卡保留，不能把顾问建议转述为客户事实。','');
+lines.push('## 5. 行级使用对象（不是部门）','',audienceSource.review.note,audienceSource.review.record,'','唯一源：`data/organization-audiences.json`。与157条落实部门关系分别维护，不累加为新的L4。','');
+for(const audience of catalog.audiences){
+  lines.push(`### ${audience.id} ${audience.name}`,'',audience.scope,'');
+  for(const relation of catalog.audienceRelations.filter(relation=>relation.audienceId===audience.id)){
+    const record=records.find(({s})=>s.id===relation.sceneId);
+    if(!record)throw Error('行级关系场景不存在：'+relation.sceneId);
+    lines.push(`- ${record.sec.id} ${record.sec.name} → ${record.s.id} ${record.s.title}；使用对象：${relation.users}；适用：${relation.condition}（${relation.status}，顾问建议）`);
+  }
+}
 fs.writeFileSync(path.join(lib,'17_部门字典与逐卡映射.md'),lines.join('\n'));
 const cardDir=path.join(lib,'L4场景卡片'),files=fs.readdirSync(cardDir);
 for(const {s} of records){
@@ -36,6 +49,8 @@ for(const {s} of records){
   const marker='<!-- department-mapping:generated -->';
   const existing=fs.readFileSync(file,'utf8').split(marker)[0].trimEnd();
   const projection=`\n\n${marker}\n## 部门组织关系\n\n- 建议主责：${name(a.owner)}；协同：${a.collaborators.map(name).join('、')||'无'}。\n- 依据性质：顾问建议；判断：${a.rationale}\n- 适用条件：${a.condition}\n- 审核状态：${source.reviewStatus}；${source.reviewRecord}\n- 唯一关系台账：[department-mapping.json](../data/department-mapping.json)（按本L4编码定位）；[部门派生索引](../17_部门字典与逐卡映射.md)。本节为生成投影，不独立维护另一套关系。\n`;
-  fs.writeFileSync(file,existing+projection);
+  const audienceRelations=catalog.audienceRelations.filter(relation=>relation.sceneId===s.id);
+  const audienceProjection=audienceRelations.length?'\n## 行级使用对象\n\n'+audienceRelations.map(relation=>`- ${catalog.audiences.find(audience=>audience.id===relation.audienceId).name}；主要服务对象：${relation.users}。\n- 适用条件：${relation.condition}\n- 依据：顾问建议；审核：${relation.status}；${audienceSource.review.record}\n`).join('\n')+'\n唯一源：[organization-audiences.json](../data/organization-audiences.json)；落实部门与服务对象分开。\n':'';
+  fs.writeFileSync(file,existing+projection+audienceProjection);
 }
-console.log(JSON.stringify({scenes:records.length,departments:departments.size,relationships:catalog.departmentRelations.length,status:source.reviewStatus}));
+console.log(JSON.stringify({scenes:records.length,departments:departments.size,relationships:catalog.departmentRelations.length,audienceRelations:catalog.audienceRelations.length,status:source.reviewStatus}));

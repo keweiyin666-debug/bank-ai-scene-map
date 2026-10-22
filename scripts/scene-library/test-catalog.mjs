@@ -23,6 +23,12 @@ assert.equal(createHash('sha256').update(html).digest('hex'),manifest.htmlSha256
 assert.equal(run('allScenes().length'),manifest.scenes);
 assert.equal(run('allScenes().every(s=>s.sourceBatches.length>0)'),true);
 validatePublishedCatalog(catalog);
+if(catalog.releaseId==='2026-10-22-v0.8.0'){
+  const prior=JSON.parse(fs.readFileSync('银行AI场景地图内容库/releases/2026-10-22-v0.7.0/catalog.json','utf8'));
+  assert.deepEqual(catalog.domains,prior.domains);
+  assert.deepEqual(catalog.departmentRelations,prior.departmentRelations);
+  assert.deepEqual(catalog.departments,prior.departments);
+}
 assert.equal(run("isOlderCatalogRelease('2026-10-21-v0.6.0','2026-10-22-v0.6.1')"),true);
 assert.equal(run("isOlderCatalogRelease('2026-10-22-v0.6.2','2026-10-22-v0.6.10')"),true);
 assert.equal(run("isOlderCatalogRelease('2026-10-22-v0.6.10','2026-10-22-v0.6.2')"),false);
@@ -34,7 +40,7 @@ assert.equal(await run('refreshPublishedCatalog()'),false);
 assert.equal(run('activeCatalog.releaseId'),release.releaseId);
 assert.equal(node('catalogStatus').dataset.source,'embedded');
 assert.match(node('catalogStatus').textContent,/后台仍为旧版/);
-for(const mutate of [c=>c.domains[0].sections[0].scenes.push(c.domains[0].sections[0].scenes[0]),c=>c.schemaVersion=3,c=>c.pipeline.batches[0].newScenes=100,c=>c.domains[0].sections[0].scenes[0].sourceBatches=['B99'],c=>c.domains[0].sections[0].scenes[0].abilities.D01='evil',c=>c.departmentRelations[0].sceneId='missing',c=>c.departmentRelations.push(c.departmentRelations[0]),c=>c.departmentReview.status='proposed']){
+for(const mutate of [c=>c.domains[0].sections[0].scenes.push(c.domains[0].sections[0].scenes[0]),c=>c.schemaVersion=4,c=>c.pipeline.batches[0].newScenes=100,c=>c.domains[0].sections[0].scenes[0].sourceBatches=['B99'],c=>c.domains[0].sections[0].scenes[0].abilities.D01='evil',c=>c.departmentRelations[0].sceneId='missing',c=>c.departmentRelations.push(c.departmentRelations[0]),c=>c.departmentReview.status='proposed',c=>c.audienceRelations[0].sceneId='missing',c=>c.audienceRelations.push(c.audienceRelations[0]),c=>c.audienceReview.status='proposed',c=>c.audiences[0].id='DP27',c=>c.audienceRelations[0].role='owner']){
   const bad=structuredClone(catalog);mutate(bad);assert.throws(()=>validatePublishedCatalog(bad));
 }
 // A new backend card (not embedded in HTML) appears in navigation, search and details' model.
@@ -91,7 +97,40 @@ assert.equal(run('state.view'),'domain');assert.equal(run('state.domain'),'BA03'
 // v1 has no department facts: all cards remain accessible via all/pending.
 context.legacy=structuredClone(catalog);context.legacy.schemaVersion=1;
 delete context.legacy.departments;delete context.legacy.departmentRelations;delete context.legacy.departmentReview;
+delete context.legacy.audiences;delete context.legacy.audienceRelations;delete context.legacy.audienceReview;
 validatePublishedCatalog(context.legacy);
 run('activeCatalog=legacy;domains=legacy.domains;state.view="department";state.department="pending";');
 assert.equal(run('currentScenes().length'),manifest.scenes);
-console.log('PASS: hashes, lineage, backend additions, dual views, unique counts, department aliases, partial L3, filters, v1 fallback, escaping, offline and draft protection.');
+context.v2=structuredClone(catalog);context.v2.schemaVersion=2;
+delete context.v2.audiences;delete context.v2.audienceRelations;delete context.v2.audienceReview;
+validatePublishedCatalog(context.v2);
+run('activeCatalog=v2;domains=v2.domains;state.department="all";render();');
+assert.equal(run('currentScenes().length'),manifest.scenes);
+assert.ok(!node('domainList').innerHTML.includes('全行经营决策与指挥'));
+run('activeCatalog=embeddedCatalog;domains=embeddedCatalog.domains;selectOrganization("MG01");');
+assert.equal(run('currentScenes().length'),2);
+assert.equal(run('currentScenes().some(scene=>scene.id==="BA01-01-02")'),false);
+assert.equal(run('sceneDepartments("BA01-01-01").some(relation=>relation.departmentId==="DP16")'),true);
+assert.equal(run('currentScenes().every(scene=>sceneAudiences(scene.id).length===1)'),true);
+assert.match(node('domainList').innerHTML,/行级管理 · 主要服务对象/);
+assert.match(node('domainList').innerHTML,/业务与职能部门 · 职责参考/);
+assert.ok(!node('resultCount').textContent.includes('主责'));
+run('selectOrganization("DP01");');
+const retailCount=run('currentScenes().length');
+assert.equal(run('state.expandedOrganization'),'DP01');
+assert.ok(run('organizationSections("DP01").length')>1);
+assert.match(node('domainList').innerHTML,/data-organization="DP01" data-l2="BA02-P01"/);
+run('selectOrganizationSection("DP01","BA02-P01");');
+assert.ok(run('currentScenes().length')<retailCount);
+assert.equal(run('currentScenes().every(scene=>scene.l2Id==="BA02-P01"&&departmentScope(scene,"DP01"))'),true);
+assert.match(node('sceneContent').innerHTML,/id="section-BA02-P01"/);
+assert.match(node('breadcrumb').textContent,/客户分层与客群经营/);
+run('setOrganizationView("domain");setOrganizationView("department");');
+assert.equal(run('state.l2'),'BA02-P01');
+run('selectOrganizationSection("DP01","");');assert.equal(run('currentScenes().length'),retailCount);
+run('selectOrganizationSection("DP01","missing");');assert.equal(run('state.l2'),'');
+run('selectOrganization("DP03");');assert.equal(run('state.l2'),'');
+run('window.location.search="?view=organization&organization=MG01&l2=BA01-P02";readOrganizationContext();');
+assert.equal(run('state.view'),'department');assert.equal(run('state.department'),'MG01');assert.equal(run('state.l2'),'BA01-P02');
+assert.equal(run('currentScenes().length'),2);
+console.log('PASS: catalog hashes, lineage, schema1/2/3, organization audiences vs responsibility, L2 expansion/filtering, dual views, unique counts, escaping, offline and draft protection.');
