@@ -699,7 +699,7 @@ const assetCloudConfig={url:'https://aziiqntgqsrxovdgydwi.supabase.co',publishab
         // Do not replace a card underneath an open detail or an unsaved draft.
         if(currentDetailScene||contentEditor||tagEditor||assetEditing){catalogStatus('embedded',`后台目录已就绪；刷新页面加载新目录 · 当前${activeCatalog.releaseId}`);return false;}
         activeCatalog=next;domains=next.domains;
-        if(!domains.some(d=>d.id===state.domain))state.domain=domains[0].id;
+        if(!(state.query&&state.domain==='all')&&!domains.some(d=>d.id===state.domain))state.domain=domains[0].id;
         if(!['all','pending'].includes(state.department)&&!approvedDepartmentRelations().some(r=>r.departmentId===state.department)&&!approvedAudienceRelations().some(relation=>relation.audienceId===state.department)){state.department='all';state.l2='';state.expandedOrganization='';}
         if(state.l2&&!domains.some(domain=>domain.sections.some(section=>section.id===state.l2)))state.l2='';
         renderDomainNavigation();sync();render();renderPipeline();
