@@ -16,7 +16,7 @@ for(const file of fs.readdirSync(path.join(root,'scripts/scene-library')).filter
 for(const file of fs.readdirSync(path.join(root,library)).filter(f=>/^\d\d_.*\.md$/.test(f)&&!['10','11','13','14'].includes(f.slice(0,2))))copy(library+'/'+file);
 for(const file of ['department-mapping.json','published-catalog.json','source-batches.json'])copy(library+'/data/'+file);
 for(const file of fs.readdirSync(path.join(root,library,'migrations')).filter(f=>f.endsWith('.sql')))copy(library+'/migrations/'+file);
-for(const file of ['catalog.json','apply-catalog.sql','manifest.json'])copy(library+'/releases/'+release+'/'+file);
+for(const file of ['catalog.json','apply-catalog.sql','apply-with-tags.sql','manifest.json'])copy(library+'/releases/'+release+'/'+file);
 for(const file of ['SKILL.md','agents/openai.yaml','references/workflow.md','references/batch-ingestion.md'])copy('.agents/skills/bank-ai-scene-map-manager/'+file);
 write('index.html',read('output/bank-ai-scene-map/index.html'));
 write('README.md',read('README.scene-map.md'));

@@ -127,6 +127,7 @@ from public.scene_map_catalog where catalog_id='bank-main';
 `;
 if(JSON.stringify(catalog).includes('$scene_catalog$'))throw new Error('SQL定界符冲突');
 fs.writeFileSync(path.join(out,'apply-catalog.sql'),sql);
+fs.writeFileSync(path.join(out,'apply-with-tags.sql'),read('银行AI场景地图内容库/migrations/20261022_shared_tags.sql')+'\n'+sql);
 const manifest={releaseId:catalog.releaseId,schemaVersion:catalog.schemaVersion,pipelineVersion:catalog.pipeline.version,scenes:scenes.length,domains:catalog.domains.length,sections:catalog.domains.flatMap(d=>d.sections).length,digitalTalent:scenes.filter(s=>s.digitalTalent).length,flagship:scenes.filter(s=>s.flagship).length,catalogSha256:fingerprint,htmlSha256:sha(html),pipelineDocSha256:sha(pipelineDoc),sourceProjectionSha256:sha(read('银行AI场景地图内容库/data/published-catalog.json')),deploymentStatus:'generated-not-yet-verified'};
 manifest.departments=catalog.departments?.length||0;
 manifest.departmentRelations=catalog.departmentRelations?.length||0;
