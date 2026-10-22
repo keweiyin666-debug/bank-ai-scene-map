@@ -143,7 +143,6 @@
   <header class="appbar"><div class="appbar__inner">
     <a class="brand" href="#top"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7l9-5Z" stroke="currentColor" stroke-width="1.5"/><path d="m3.5 7.3 8.5 4.8 8.5-4.8M12 12.1V22M7.6 4.5l8.8 5v5L7.6 19.4v-15Z" stroke="#1769e0" stroke-width="1.2"/></svg><span>银行 AI 场景地图</span><span class="version">场景卡片体系 v1.5.2</span></a>
     <nav class="topnav"><a class="active" href="#map">场景地图</a><a href="#capabilities">能力框架</a><a href="#pipeline">流水线说明</a></nav><div class="spacer"></div>
-    <label class="search"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.6"/></svg><input id="search" type="search" placeholder="搜索具体场景" aria-label="搜索具体场景" /></label>
   </div></header>
 
   <main id="top">
@@ -155,7 +154,7 @@
     </div><div class="decision-grid"><div class="decision-box"><b>AI-L1 信息支持</b><span>AI 提供事实和材料，不替业务人员判断。</span></div><div class="decision-box"><b>AI-L2 分析建议</b><span>AI 提供归因、提示或建议，由人决策。</span></div><div class="decision-box"><b>AI-L3 人工确认后闭环</b><span>AI 形成后续动作，经人工确认后执行并跟踪。</span></div></div></div></section>
 
     <section class="explorer" id="map"><aside class="sidebar">
-      <div class="sidebar__section"><div class="organization-switch" id="organizationSwitch" role="group" aria-label="场景组织方式"><button class="chip active" data-view="department" aria-pressed="true">按组织</button><button class="chip" data-view="domain" aria-pressed="false">按业务域</button></div><p class="sidebar__label" id="organizationLabel">行级管理与业务部门</p><label class="department-search" id="departmentSearchLabel">查找组织<input id="departmentSearch" type="search" placeholder="行级管理、部门名称或别名" aria-label="查找组织名称或别名"></label><ul class="domain-list" id="domainList"></ul></div>
+      <div class="sidebar__section"><div class="organization-switch" id="organizationSwitch" role="group" aria-label="场景组织方式"><button class="chip active" data-view="department" aria-pressed="true">按组织</button><button class="chip" data-view="domain" aria-pressed="false">按业务域</button></div><p class="sidebar__label" id="organizationLabel">行级管理与业务部门</p><div class="department-search"><input id="librarySearch" type="search" placeholder="搜索组织、业务域、场景…" aria-label="模糊搜索场景库" aria-describedby="librarySearchHint"><span id="librarySearchHint">也可搜岗位、任务、标签、编码；空格组合</span></div><ul class="domain-list" id="domainList"></ul></div>
       <div class="sidebar__section"><p class="sidebar__label">场景标签</p><div class="filter-row" id="typeFilters"><button class="chip active" data-type="all">全部</button><button class="chip" data-type="flagship">王牌场景</button><button class="chip" data-type="benchmark">标杆案例</button><button class="chip" data-type="digitalTalent">数字人才</button></div></div>
       <div class="sidebar__section"><p class="sidebar__label">四问能力</p><div class="filter-row" id="abilityFilters"><button class="chip active" data-ability="all">全部</button><button class="chip" data-ability="D01">D01 是什么</button><button class="chip" data-ability="D02">D02 为什么</button><button class="chip" data-ability="D03">D03 凭什么</button><button class="chip" data-ability="D04">D04 怎么做</button></div></div>
     </aside><div class="content"><div class="breadcrumb" id="breadcrumb"></div><div class="content-head"><div><h2 id="domainTitle"></h2><p id="domainDesc"></p><p class="catalog-status" id="catalogStatus" role="status" aria-live="polite"></p></div><div class="result-count" id="resultCount"></div></div><div id="sceneContent"></div></div></section>
@@ -181,11 +180,27 @@
     __CATALOG_VALIDATOR__
     /* PUBLISHED_CATALOG_END */
 
-    const state={view:'department',department:'all',domain:'BA01',departmentQuery:'',expandedOrganization:'',l2:'',type:'all',ability:'all',query:''};
+    const state={view:'department',department:'all',domain:'BA01',expandedOrganization:'',l2:'',type:'all',ability:'all',query:''};
     let lastSceneTrigger=null;
     const allScenes=()=>domains.flatMap(d=>d.sections.flatMap(sec=>sec.scenes.map(s=>({...displayScene(s),domainId:d.id,domainName:d.name,l2Id:sec.id,l2Name:sec.name,group:sec.group||null}))));
     const matches=s=>(state.type==='all'||(state.type==='flagship'&&s.flagship)||(state.type==='benchmark'&&s.benchmark)||(state.type==='digitalTalent'&&s.digitalTalent))&&(state.ability==='all'||['done','partial'].includes(s.abilities[state.ability]));
-    const matchesQuery=s=>!state.query||`${s.title}${s.definition}${s.domainName}${s.l2Name}`.toLowerCase().includes(state.query.toLowerCase());
+    const normalizeSearch=value=>String(value||'').normalize('NFKC').toLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'');
+    function searchFields(scene){
+      const organizations=[...sceneDepartments(scene.id).map(relation=>organizationEntry(relation.departmentId)),...sceneAudiences(scene.id).map(relation=>organizationEntry(relation.audienceId))].filter(Boolean);
+      return [scene.id,scene.title,scene.definition,scene.domainId,scene.domainName,scene.l2Id,scene.l2Name,scene.group?.id,scene.group?.title,scene.role,scene.trigger,scene.task,scene.dataScope,scene.outputs,scene.before,scene.after,scene.feedback,scene.decision,...(scene.values||[]),...(scene.metrics||[]).map(metric=>metric.text),...organizations.flatMap(entry=>[entry.id,entry.name,...(entry.aliases||[])]),...sceneAudiences(scene.id).flatMap(relation=>relation.users||[]),...Object.entries(tagFields).filter(([key])=>scene[key]).map(([,label])=>label),...Object.entries(scene.abilities||{}).filter(([,status])=>['done','partial'].includes(status)).flatMap(([id])=>[id,abilityNames[id]])].map(normalizeSearch).filter(Boolean);
+    }
+    function matchesQuery(scene){
+      const terms=state.query.split(/\s+/u).map(normalizeSearch).filter(Boolean);
+      if(!terms.length)return true;
+      const fields=searchFields(scene);
+      return terms.every(term=>fields.some(field=>field.includes(term)));
+    }
+    function setLibraryQuery(value){
+      const query=value.trim();
+      if(!state.query&&query){state.department='all';state.domain='all';state.l2='';state.expandedOrganization='';}
+      if(!query&&state.domain==='all')state.domain=domains[0].id;
+      state.query=query;render();
+    }
     function domainCount(d){return d.sections.reduce((n,s)=>n+s.scenes.length,0)}
     const approvedDepartmentRelations=()=>activeCatalog.departmentRelations?.filter(r=>r.status==='approved')||[];
     const sceneDepartments=id=>approvedDepartmentRelations().filter(r=>r.sceneId===id).map(r=>({...r,name:activeCatalog.departments.find(d=>d.id===r.departmentId)?.name||r.departmentId}));
@@ -229,17 +244,16 @@
     function renderDomainNavigation(){
       const isDept=state.view==='department',esc=escapeAssetHTML;
       document.getElementById('organizationLabel').textContent=isDept?'组织视角 · 使用对象与落实部门分列':'L1 一级业务域';
-      document.getElementById('departmentSearchLabel').hidden=!isDept;
       document.getElementById('domainList').classList.toggle('domain-list--organization',isDept);
-      const filtered=allScenes().filter(s=>matches(s)&&matchesQuery(s)),query=state.departmentQuery.toLowerCase();
-      const matchesOrganization=entry=>!query||[entry.name,...entry.aliases].join(' ').toLowerCase().includes(query);
+      const filtered=allScenes().filter(s=>matches(s)&&matchesQuery(s));
+      const matchesOrganization=entry=>!state.query||filtered.some(scene=>departmentScope(scene,entry.id));
       const entryTemplate=entry=>{
         const expandable=isDept&&!['all','pending'].includes(entry.id),expanded=state.expandedOrganization===entry.id;
         const children=expandable?organizationSections(entry.id):[];
         const sectionItems=children.map(section=>`<li><button class="organization-l2 ${state.department===entry.id&&state.l2===section.id?'active':''}" data-organization="${entry.id}" data-l2="${section.id}" aria-pressed="${state.department===entry.id&&state.l2===section.id}"><span>${esc(section.name)}</span><span class="organization-l2__count">${section.count}</span><span class="organization-l2__meta">${esc(section.domainName)} · ${section.id}</span></button></li>`).join('');
         return `<li><div class="organization-row"><button class="domain-btn ${entry.id===(isDept?state.department:state.domain)?'active':''}" data-${isDept?'department':'domain'}="${entry.id}"${expandable?` aria-expanded="${expanded}" aria-controls="children-${entry.id}"`:''}><span class="domain-btn__mark">${esc(entry.mark)}</span><span class="domain-btn__name">${esc(entry.name)}</span><span class="domain-btn__count">${entry.count}</span></button></div>${expandable?`<ul class="organization-children" id="children-${entry.id}" ${expanded?'':'hidden'}><li><button class="organization-l2 ${state.department===entry.id&&!state.l2?'active':''}" data-organization="${entry.id}" data-l2="" aria-pressed="${state.department===entry.id&&!state.l2}"><span>全部环节</span><span class="organization-l2__count">${entry.count}</span></button></li>${sectionItems||'<li class="organization-l2__meta">当前筛选下无匹配环节</li>'}</ul>`:''}</li>`;
       };
-      if(!isDept){document.getElementById('domainList').innerHTML=domains.map(domain=>entryTemplate({...domain,count:filtered.filter(scene=>scene.domainId===domain.id).length})).join('');return;}
+      if(!isDept){document.getElementById('domainList').innerHTML=(state.query?entryTemplate({id:'all',name:'全部业务域',mark:'全',count:filtered.length}):'')+domains.filter(domain=>!state.query||filtered.some(scene=>scene.domainId===domain.id)).map(domain=>entryTemplate({...domain,count:filtered.filter(scene=>scene.domainId===domain.id).length})).join('');return;}
       const audienceItems=(activeCatalog.audiences||[]).filter(entry=>approvedAudienceRelations().some(relation=>relation.audienceId===entry.id)&&matchesOrganization(entry));
       const departmentItems=(activeCatalog.departments||[]).filter(entry=>approvedDepartmentRelations().some(relation=>relation.departmentId===entry.id)&&matchesOrganization(entry));
       const withCount=entry=>({...entry,mark:entry.id.startsWith('MG')?'行':entry.id.slice(2),count:filtered.filter(scene=>departmentScope(scene,entry.id)).length});
@@ -255,27 +269,27 @@
         document.querySelector(`[data-${button.dataset.domain?'domain':'department'}="${button.dataset.domain||button.dataset.department}"]`)?.focus();
       });
       document.getElementById('organizationSwitch').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)setOrganizationView(b.dataset.view)});
-      document.getElementById('departmentSearch').addEventListener('input',e=>{state.departmentQuery=e.target.value.trim();renderDomainNavigation();sync()});
+      document.getElementById('librarySearch').addEventListener('input',event=>{if(!event.isComposing)setLibraryQuery(event.target.value)});
+      document.getElementById('librarySearch').addEventListener('compositionend',event=>setLibraryQuery(event.target.value));
       document.getElementById('typeFilters').addEventListener('click',e=>setFilter(e,'type'));
       document.getElementById('abilityFilters').addEventListener('click',e=>setFilter(e,'ability'));
-      document.getElementById('search').addEventListener('input',e=>{state.query=e.target.value.trim();render()});
       document.getElementById('detailBack').addEventListener('click',closeDetail);
       document.getElementById('detailScrim').addEventListener('click',closeDetail);
       document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail()});sync();render();
     }
     function setFilter(e,key){const b=e.target.closest(`[data-${key}]`);if(!b)return;state[key]=b.dataset[key];sync();render()}
     function sync(){document.querySelectorAll('[data-view]').forEach(x=>{x.classList.toggle('active',x.dataset.view===state.view);x.setAttribute('aria-pressed',String(x.dataset.view===state.view))});document.querySelectorAll('[data-domain]').forEach(x=>x.classList.toggle('active',x.dataset.domain===state.domain));document.querySelectorAll('[data-department]').forEach(x=>x.classList.toggle('active',x.dataset.department===state.department));document.querySelectorAll('[data-type]').forEach(x=>x.classList.toggle('active',x.dataset.type===state.type));document.querySelectorAll('[data-ability]').forEach(x=>x.classList.toggle('active',x.dataset.ability===state.ability))}
-    function currentScenes(){return allScenes().filter(s=>matchesQuery(s)&&(state.view==='department'?departmentScope(s)&&(!state.l2||s.l2Id===state.l2):(!!state.query||s.domainId===state.domain))&&matches(s))}
+    function currentScenes(){return allScenes().filter(s=>matchesQuery(s)&&(state.view==='department'?departmentScope(s)&&(!state.l2||s.l2Id===state.l2):((!!state.query&&state.domain==='all')||s.domainId===state.domain))&&matches(s))}
     function render(){
       const domain=domains.find(d=>d.id===state.domain),scenes=currentScenes(),isDept=state.view==='department';
-      const department=organizationEntry(state.department),isAudience=state.department.startsWith('MG'),sectionName=domains.flatMap(item=>item.sections).find(section=>section.id===state.l2)?.name,name=isDept?(state.department==='all'?'全部场景':state.department==='pending'?'部门待确认':department?.name||'部门待确认'):domain.name;
+      const department=organizationEntry(state.department),isAudience=state.department.startsWith('MG'),sectionName=domains.flatMap(item=>item.sections).find(section=>section.id===state.l2)?.name,name=isDept?(state.department==='all'?'全部场景':state.department==='pending'?'部门待确认':department?.name||'部门待确认'):(domain?.name||'全部业务域');
       document.getElementById('breadcrumb').textContent=`场景地图 / ${isDept?'按组织':'按业务域'} / ${name}${isDept&&sectionName?' / '+sectionName:''}${state.query?` / 搜索“${state.query}”`:''}`;
       document.getElementById('domainTitle').textContent=name;
-      document.getElementById('domainDesc').textContent=isDept?(state.department==='all'?'同一套场景按行级使用对象与业务部门分组组织；给谁使用、谁负责落实分别说明，不代表某家银行的实际组织架构。':state.department==='pending'?'这些场景仍可在全库和业务域中访问；部门关系待确认，不凭业务域自动归属。':`${department?.scope||''} ${state.query?'搜索限当前组织；':''}${isAudience?'使用对象不等于落实部门；具体职责见场景详情。':'主责与协同均按具体场景关联。'}`):(state.query?'从全部业务域匹配 L4 具体场景，保留当前标签和能力筛选。':domain.desc);
+      document.getElementById('domainDesc').textContent=state.query?`在${isDept?(state.department==='all'?'全库':name+(sectionName?' · '+sectionName:'')):(state.domain==='all'?'全部业务域':name)}中匹配组织、业务域及场景信息；空格分隔的关键词需同时匹配，可点击左侧条目缩小范围。保留当前标签和能力筛选。`:(isDept?(state.department==='all'?'同一套场景按行级使用对象与业务部门分组组织；给谁使用、谁负责落实分别说明，不代表某家银行的实际组织架构。':state.department==='pending'?'这些场景仍可在全库和业务域中访问；部门关系待确认，不凭业务域自动归属。':`${department?.scope||''} ${isAudience?'使用对象不等于落实部门；具体职责见场景详情。':'主责与协同均按具体场景关联。'}`):domain.desc);
       const ownerCount=isDept&&department&&!isAudience?scenes.filter(s=>sceneDepartments(s.id).some(r=>r.departmentId===state.department&&r.role==='owner')).length:null;
       document.getElementById('resultCount').textContent=`${scenes.length} 个具体场景${ownerCount===null?'':` · 主责 ${ownerCount} / 协同 ${scenes.length-ownerCount}`}`;
       renderDomainNavigation();sync();
-      if(!scenes.length){document.getElementById('sceneContent').innerHTML='<div class="empty">未找到符合条件的具体场景。</div>';return}
+      if(!scenes.length){document.getElementById('sceneContent').innerHTML='<div class="empty">未找到符合条件的具体场景。请减少关键词，或放宽组织、标签和能力筛选。</div>';return}
       const targetDomains=isDept||state.query?domains.filter(d=>scenes.some(s=>s.domainId===d.id)):[domain];
       let html='';targetDomains.forEach(d=>{if(isDept||state.query)html+=`<div class="l2-section"><div class="l2-head"><span class="l2-code">${d.id}</span><h3>${escapeAssetHTML(d.name)}</h3><span class="l2-count"></span></div></div>`;d.sections.forEach(sec=>{const list=scenes.filter(s=>s.domainId===d.id&&s.l2Id===sec.id);if(!list.length)return;html+=sectionTemplate(sec,list)})});
       document.getElementById('sceneContent').innerHTML=html;document.querySelectorAll('[data-scene]').forEach(b=>b.addEventListener('click',()=>{lastSceneTrigger=b;openDetail(allScenes().find(s=>s.id===b.dataset.scene))}));

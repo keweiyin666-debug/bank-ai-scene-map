@@ -87,9 +87,10 @@ run('state.type="digitalTalent";state.ability="D01";state.query="客户";setOrga
 assert.equal(run('state.department'),'DP03');assert.equal(run('state.query'),'客户');
 assert.equal(run('state.type'),'digitalTalent');assert.equal(run('state.ability'),'D01');
 assert.equal(run('currentScenes().every(s=>departmentScope(s)&&matches(s)&&matchesQuery(s))'),true);
-run('state.departmentQuery="个人金融";renderDomainNavigation();');
-assert.match(node('domainList').innerHTML,/零售金融部/);assert.ok(!node('domainList').innerHTML.includes('公司金融部'));
-run('state.departmentQuery="";state.type="all";state.ability="all";state.query="";');
+run('state.type="all";state.ability="all";state.query="";setLibraryQuery("个人金融");');
+assert.match(node('domainList').innerHTML,/零售金融部/);
+assert.equal(run('currentScenes().every(scene=>departmentScope(scene,"DP01"))'),true);
+run('setLibraryQuery("");');
 assert.match(run('sectionTemplate(domains[0].sections[0],[allScenes()[0]])'),/局部相关/);
 assert.ok(!run('sectionTemplate(domains[0].sections[0],[allScenes()[0]])').includes('class="closure"'));
 run('window.location.search="?view=domain&domain=BA03";readOrganizationContext();');

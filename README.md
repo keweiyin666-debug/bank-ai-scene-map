@@ -12,6 +12,8 @@
 
 组织导航已移除独立箭头：点击组织整行选择并展开，再次点击收起/展开；收起不清除已选L2，切换组织才重置业务环节。此为前端修订，目录版本及后台数据保持不变，无需重新执行SQL。
 
+搜索统一在左侧，不再保留顶栏搜索及“查找组织”标签。可按组织/部门及别名、业务域、场景、岗位、任务、标签、能力和编码做部分文本匹配；空格组合词需同时匹配。开始搜索时跨全库查找，再点击组织/业务域/L2缩小范围；标签与能力筛选继续叠加。共享文案与标签更新后同步参与检索，无需新增后台服务。
+
 - [管理与提炼规则](银行AI场景地图内容库/00_内容管理说明.md)、[双视角计划](银行AI场景地图内容库/16_部门与业务域双视角组织及调整计划.md)。
 - [逐卡索引](银行AI场景地图内容库/08_L4场景卡片索引.md)、[部门字典与映射](银行AI场景地图内容库/17_部门字典与逐卡映射.md)。
 - [来源流水线](银行AI场景地图内容库/14_场景库流水线说明.md)、[数据与发布协议](银行AI场景地图内容库/15_后台数据与三项同步发布协议.md)、[实际发布记录](银行AI场景地图内容库/12_场景库共享发布记录.md)。
@@ -29,6 +31,7 @@
 node scripts/scene-library/refresh-departments.mjs
 node scripts/scene-library/build-release.mjs --site-output
 node scripts/scene-library/test-catalog.mjs
+node scripts/scene-library/test-search.mjs
 node scripts/scene-library/test-shared-content.mjs
 node scripts/scene-library/test-shared-tags.mjs
 ```
