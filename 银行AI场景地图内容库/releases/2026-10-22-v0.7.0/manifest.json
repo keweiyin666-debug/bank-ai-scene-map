@@ -1,0 +1,18 @@
+{
+  "releaseId": "2026-10-22-v0.7.0",
+  "schemaVersion": 2,
+  "pipelineVersion": "v1.2",
+  "scenes": 65,
+  "domains": 13,
+  "sections": 29,
+  "digitalTalent": 29,
+  "flagship": 3,
+  "catalogSha256": "957fd942936eff38010224713ffa97cfc100a9716e8ca0f8d5f84f25c05a8068",
+  "htmlSha256": "46142d01b8f49432a5b1a9d1bc05b64c21d1a57e851ef62b610b0b415a60f933",
+  "pipelineDocSha256": "8979940ff8952402da5bcd3afa0e30c37d68d0fb02928a0ce8593e90eebf8a0f",
+  "sourceProjectionSha256": "3530d8b6b457d3fc183b2fcb0583cc3c7b80a47a1fbd099317549a93645b73fb",
+  "deploymentStatus": "generated-not-yet-verified",
+  "departments": 26,
+  "departmentRelations": 157,
+  "approvedRelations": 157
+}

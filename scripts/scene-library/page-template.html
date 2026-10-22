@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="银行 AI 场景地图：按部门或业务域浏览同一套具体场景" />
+  <title>银行 AI 场景地图</title>
+  <style>
+    :root {
+      --blue:#1769e0; --blue-dark:#0b3b91; --blue-soft:#eef5ff;
+      --ink:#172b4d; --muted:#53657d; --subtle:#74849a;
+      --line:#dce4ee; --surface:#f5f7fa; --surface-2:#e9eef5;
+      --green:#147d64; --amber:#9a6400; --rose:#c94b62; --rose-soft:#fff1f3;
+      --cyan:#087ea4; --cyan-soft:#edf8fb; --warm-soft:#fff8ee;
+      --radius-sm:6px; --radius:8px; --page:1584px; --header:64px; --side:292px;
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth}
+    body{margin:0;color:var(--ink);background:#fff;font-family:Inter,"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;letter-spacing:0;font-size:15px;line-height:1.6}
+    button,input{font:inherit} button{color:inherit} a{color:inherit;text-decoration:none}
+    :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+    .appbar{position:sticky;top:0;z-index:40;height:var(--header);border-bottom:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:blur(12px)}
+    .appbar__inner{width:min(100%,var(--page));height:100%;margin:auto;padding:0 24px;display:flex;align-items:center;gap:24px}
+    .brand{display:flex;align-items:center;gap:10px;min-width:max-content;font-weight:600}.brand svg{width:24px}.version{padding:2px 6px;color:var(--muted);background:var(--surface);font-size:11px}
+    .topnav{display:flex;align-self:stretch}.topnav a{min-width:92px;padding:0 14px;display:grid;place-items:center;color:var(--muted);font-size:14px;border-bottom:2px solid transparent}.topnav a:hover,.topnav a.active{color:var(--ink);border-bottom-color:var(--blue)}
+    .spacer{flex:1}.search{width:300px;height:38px;padding:0 12px;display:flex;align-items:center;gap:8px;background:var(--surface);border-bottom:1px solid var(--ink)}.search svg{width:16px}.search input{width:100%;min-width:0;border:0;outline:0;background:transparent}
+
+    .btn{min-height:48px;padding:0 18px;display:inline-flex;align-items:center;justify-content:center;gap:16px;border:0;border-radius:0;cursor:pointer}.btn--primary{color:#fff;background:var(--blue)}.btn--primary:hover{background:#0050e6}.btn--secondary{background:var(--surface-2)}
+
+    .explorer{width:min(100%,var(--page));margin:auto;display:grid;grid-template-columns:var(--side) minmax(0,1fr);border-left:1px solid var(--line);border-right:1px solid var(--line)}
+    .sidebar{position:sticky;top:var(--header);align-self:start;max-height:calc(100vh - var(--header));overflow:auto;border-right:1px solid var(--line);background:#fff}.sidebar__section{padding:20px 16px 14px;border-bottom:1px solid var(--line)}.sidebar__label{margin:0 0 12px;color:var(--subtle);font-size:12px}
+    .domain-list{margin:0;padding:0;list-style:none}.domain-btn{width:100%;min-height:48px;padding:8px 10px;display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;text-align:left;border:0;border-left:3px solid transparent;background:transparent;cursor:pointer}.domain-btn:hover{background:var(--surface)}.domain-btn.active{border-left-color:var(--blue);background:var(--blue-soft)}.domain-btn__mark{width:28px;height:28px;display:grid;place-items:center;color:var(--blue);border:1px solid var(--line);background:#fff;font-size:12px;font-weight:600}.domain-btn__name{font-size:13px;line-height:1.35}.domain-btn__count{color:var(--subtle);font-size:11px}
+    .filter-row{display:flex;flex-wrap:wrap;gap:6px}.chip{min-height:32px;padding:0 9px;color:var(--muted);background:#fff;border:1px solid var(--line);cursor:pointer;font-size:11px}.chip:hover,.chip.active{color:var(--blue);border-color:var(--blue);background:var(--blue-soft)}
+    .content{min-width:0;padding:36px 36px 80px}.breadcrumb{color:var(--subtle);font-size:12px}.content-head{margin:14px 0 30px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}.content-head h2{margin:0;font-size:34px;font-weight:400}.content-head p{max-width:800px;margin:10px 0 0;color:var(--muted);line-height:1.65}.result-count{color:var(--muted);font-size:12px;white-space:nowrap}
+    .l2-section{margin-top:42px}.l2-head{padding:0 0 13px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border-bottom:1px solid var(--ink)}.l2-code{color:var(--blue);font-size:11px}.l2-head h3{margin:0;font-size:19px;font-weight:500}.l2-count{color:var(--subtle);font-size:11px}.l2-desc{margin:10px 0 18px;color:var(--muted);font-size:13px}
+    .l3-group{margin:20px 0 24px;border:1px solid var(--line);border-top:4px solid var(--blue)}.l3-intro{padding:24px;display:grid;grid-template-columns:minmax(230px,.7fr) minmax(420px,1.3fr);gap:28px;background:linear-gradient(120deg,#fff,#f5f8ff)}.l3-kicker{display:flex;gap:7px;align-items:center;color:var(--blue);font-size:11px}.l3-intro h4{margin:12px 0 9px;font-size:28px;font-weight:400}.l3-intro p{margin:0;color:var(--muted);line-height:1.65}.flag-tag{padding:4px 7px;color:#fff;background:var(--blue);font-size:10px}.closure{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-left:1px solid var(--line)}.closure span{min-height:58px;padding:10px;display:flex;align-items:flex-end;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;font-size:11px}.closure span:last-child{color:#fff;background:var(--blue)}
+    .scene-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.l3-group .scene-grid{padding:18px;background:var(--surface)}
+    .scene-card{min-width:0;padding:0;display:flex;flex-direction:column;text-align:left;background:#fff;border:1px solid var(--line);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}.scene-card:hover{transform:translateY(-2px);border-color:var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.07)}
+    .scene-card__head{padding:18px 19px 15px;border-bottom:1px solid var(--line)}.scene-card__top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.scene-id{color:var(--blue);font-size:11px}.scene-state{padding:3px 6px;color:var(--muted);background:var(--surface);font-size:10px}.scene-card h4{margin:13px 0 8px;font-size:20px;font-weight:500}.scene-definition{margin:0;color:var(--muted);font-size:12px;line-height:1.6}
+    .scene-card__body{padding:16px 19px;display:grid;gap:13px}.ba-row{display:grid;grid-template-columns:52px 1fr;gap:8px;font-size:11px;line-height:1.55}.ba-row span{color:var(--subtle);font-weight:600}.ba-row.after{padding-top:11px;border-top:1px solid var(--line)}
+    .ability-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.ability{min-width:0;padding:8px 6px;background:var(--surface);border-top:2px solid var(--line)}.ability.done{border-color:var(--green)}.ability.partial{border-color:var(--blue)}.ability.planned{border-color:#c6c6c6}.ability b{display:block;font-size:10px}.ability span{display:block;margin-top:4px;color:var(--subtle);font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .value-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}.value-mini div{min-width:0;padding:9px;background:#fff}.value-mini span{display:block;color:var(--subtle);font-size:9px}.value-mini b{display:block;margin-top:4px;font-size:10px;font-weight:500;line-height:1.4}
+    .voice{margin:0;padding:11px 12px;color:var(--muted);background:var(--blue-soft);border-left:3px solid var(--blue);font-size:11px;line-height:1.55}
+    .scene-card__foot{margin-top:auto;padding:12px 19px;display:flex;align-items:center;gap:6px;border-top:1px solid var(--line)}.tag{padding:4px 7px;color:#0043ce;background:var(--blue-soft);font-size:10px}.tag--dark{color:#fff;background:var(--ink)}.tag--flag{color:#fff;background:var(--blue)}.decision{margin-left:auto;color:var(--muted);font-size:10px}.open{margin-left:8px;color:var(--blue);font-size:11px}.empty{padding:50px;border:1px solid var(--line);color:var(--muted);text-align:center}
+
+    .capability-band{color:#fff;background:var(--ink)}.capability-inner{width:min(100%,var(--page));margin:auto;padding:54px 24px 62px}.capability-inner h2{margin:0 0 26px;font-size:32px;font-weight:300}.question-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#525252;border:1px solid #525252}.question{padding:22px;background:#262626}.question__code{color:#78a9ff;font-size:11px}.question h3{margin:10px 0 5px;font-size:19px;font-weight:400}.question strong{display:block;margin-bottom:10px;color:#fff;font-size:13px}.question p{margin:0;color:#c6c6c6;font-size:12px;line-height:1.6}.decision-grid{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#525252;border:1px solid #525252}.decision-box{padding:16px;background:#262626}.decision-box b{color:#78a9ff}.decision-box span{display:block;margin-top:7px;color:#c6c6c6;font-size:11px;line-height:1.55}
+    footer{padding:24px;background:var(--surface);border-top:1px solid var(--line);color:var(--muted);font-size:12px}.footer-inner{width:min(100%,var(--page));margin:auto;display:flex;justify-content:space-between;gap:20px}
+
+    /* Unified editorial system: larger type, restrained color blocks, 8px geometry. */
+    .version{padding:3px 8px;border-radius:var(--radius-sm);font-size:12px}.topnav a{min-width:104px;padding:0 16px;font-size:15px}.search{width:320px;height:42px;padding:0 14px;gap:10px;border:1px solid transparent;border-radius:var(--radius-sm)}.search:focus-within{border-color:var(--blue);background:#fff}.search input{font-size:14px}
+    .explorer{background:#fff}.sidebar__section{padding:22px 18px 16px}.sidebar__label{margin-bottom:13px;font-size:13px}.domain-btn{min-height:52px;padding:9px 11px;grid-template-columns:32px 1fr auto;gap:10px;border-radius:0 var(--radius-sm) var(--radius-sm) 0}.domain-btn__mark{width:30px;height:30px;border-radius:var(--radius-sm);font-size:13px}.domain-btn__name{font-size:14px;line-height:1.4}.domain-btn__count{font-size:12px}.filter-row{gap:8px}.chip{min-height:36px;padding:0 11px;border-radius:var(--radius-sm);font-size:13px}
+    .content{padding:44px 40px 88px;background:#fbfcfe}.breadcrumb{font-size:13px}.content-head{margin:16px 0 34px}.content-head h2{font-size:36px;line-height:1.25;font-weight:500}.content-head p{margin-top:12px;font-size:16px;line-height:1.7}.result-count{font-size:13px}.l2-section{margin-top:48px}.l2-head{padding-bottom:14px}.l2-code,.l2-count{font-size:13px}.l2-head h3{font-size:21px;font-weight:600}.l2-desc{margin:12px 0 20px;font-size:15px}.l3-group{margin:22px 0 28px;overflow:hidden;border-radius:var(--radius)}.l3-intro{padding:28px;gap:32px}.l3-kicker{gap:8px;font-size:13px}.l3-intro h4{font-size:30px;font-weight:500}.l3-intro p{font-size:15px;line-height:1.7}.flag-tag,.tag{border-radius:var(--radius-sm);font-size:12px}.closure{gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}.closure span{min-height:62px;padding:11px;border:0;font-size:13px}
+    .scene-grid{gap:20px}.l3-group .scene-grid{padding:22px}.scene-card{border-radius:var(--radius);overflow:hidden;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.scene-card:hover{border-color:#b8c6d8;box-shadow:0 12px 30px rgba(23,43,77,.09)}.scene-card__head{padding:24px 24px 20px;background:#fff}.scene-card__top{align-items:center}.scene-type{color:var(--blue);font-size:13px;font-weight:600}.scene-source-tag{display:inline-flex;align-items:center;padding:5px 9px;color:#6652b8;background:#f3f0ff;border:1px solid #ded7fb;border-radius:999px;font-size:12px;font-weight:650;line-height:1}.scene-card h4{margin:12px 0 8px;font-size:23px;line-height:1.35;font-weight:600}.scene-definition{font-size:15px;line-height:1.7}.scene-card__body{padding:22px 24px;gap:18px}.ba-row{grid-template-columns:64px 1fr;gap:14px;align-items:start;font-size:14px;line-height:1.75}.ba-row span{padding:5px 8px;border-radius:var(--radius-sm);text-align:center;font-weight:600}.ba-row.before span{color:var(--rose);background:var(--rose-soft)}.ba-row.after span{color:var(--cyan);background:var(--cyan-soft)}
+    .value-summary{padding:18px;background:var(--blue-soft);border-radius:var(--radius-sm)}.card-section-label{display:block;margin-bottom:10px;color:var(--blue);font-size:13px;font-weight:600}.value-summary ol{margin:0;padding:0;list-style:none;counter-reset:value}.value-summary li{counter-increment:value;display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;font-size:14px;line-height:1.6}.value-summary li+li{margin-top:8px}.value-summary li::before{content:counter(value);width:24px;height:24px;display:grid;place-items:center;color:#fff;background:var(--blue);border-radius:50%;font-size:12px;font-weight:600}.metric-callout{padding:14px 16px;color:var(--muted);background:var(--surface);border-left:4px solid var(--blue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:14px;line-height:1.65}.metric-callout b{color:var(--ink)}.voice{margin:0;padding:17px 18px;color:#72501c;background:var(--warm-soft);border:0;border-radius:var(--radius-sm);font-size:14px;line-height:1.7}.voice .card-section-label{color:#9a6400}.voice q{font-style:normal}.scene-card__foot{padding:16px 24px;justify-content:flex-end;background:#fff}.open{margin:0;color:var(--blue);font-size:14px;font-weight:600}.empty{border-radius:var(--radius);font-size:15px}
+    .capability-band{background:#121923}.capability-inner{padding:56px 24px 64px}.capability-inner h2{margin-bottom:28px;font-size:34px;line-height:1.3;font-weight:400}.question-grid,.decision-grid{background:#465365;border-color:#465365;border-radius:var(--radius);overflow:hidden}.question,.decision-box{background:#1b2532}.question{padding:24px}.question__code{color:#8bb9ff;font-size:13px}.question h3{font-size:21px;font-weight:500}.question strong{font-size:14px}.question p{color:#c9d2df;font-size:14px;line-height:1.65}.decision-grid{margin-top:20px}.decision-box{padding:19px}.decision-box b{color:#8bb9ff;font-size:16px}.decision-box span{color:#c9d2df;font-size:13px;line-height:1.6}
+
+    .detail-layer{position:fixed;inset:0;z-index:100;visibility:hidden;opacity:0;transition:opacity .24s ease,visibility 0s linear .24s}.detail-layer.open{visibility:visible;opacity:1;transition-delay:0s}.detail-scrim{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:rgba(10,20,35,.46);backdrop-filter:blur(3px);cursor:pointer}.detail-page{position:absolute;inset:0 0 0 auto;width:min(68vw,1040px);height:100%;overflow:auto;background:#fff;box-shadow:-18px 0 50px rgba(16,31,54,.18);transform:translateX(102%);transition:transform .3s cubic-bezier(.22,1,.36,1)}.detail-layer.open .detail-page{transform:translateX(0)}.detail-bar{position:sticky;top:0;z-index:3;height:64px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}.back{width:42px;height:42px;padding:0;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:#fff;font-size:22px;line-height:1;cursor:pointer}.detail-bar span{color:var(--muted);font-size:13px}.detail-body{width:100%;padding:44px 48px 88px}.detail-kicker{margin:0 0 12px;color:var(--blue);font-size:13px}.detail-title-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px}.detail-title-row h2{margin:0;font-size:38px;line-height:1.25;font-weight:600}.detail-summary{margin:16px 0 24px;color:var(--muted);font-size:17px;line-height:1.75}.detail-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}.detail-meta div{padding:16px;background:#fff;border:0}.detail-meta span{display:block;color:var(--subtle);font-size:12px}.detail-meta b{display:block;margin-top:7px;font-size:14px;font-weight:500}.detail-body h3{margin:38px 0 15px;font-size:20px}.change-grid,.ability-detail,.value-grid,.asset-grid{display:grid;gap:12px;background:transparent;border:0}.change-grid{grid-template-columns:1fr 1fr}.change,.ability-step,.detail-value,.asset,.scope{border:1px solid var(--line);border-radius:var(--radius);background:#fff}.change{padding:22px}.change.after{background:var(--cyan-soft)}.change span,.detail-value span{display:block;margin-bottom:8px;color:var(--subtle);font-size:12px;font-weight:700}.change p,.detail-value p,.scope{margin:0;font-size:15px;line-height:1.75}.ability-detail{grid-template-columns:repeat(2,1fr)}.ability-step{padding:20px}.ability-step b{color:var(--blue);font-size:12px}.ability-step h4{margin:8px 0 5px;font-size:17px}.ability-step p{margin:0;color:var(--muted);font-size:14px;line-height:1.65}.status-label{display:inline-block;margin-top:12px;padding:4px 7px;border-radius:var(--radius-sm);background:var(--surface);font-size:12px}.value-grid{grid-template-columns:1fr}.detail-value{padding:20px;background:var(--surface)}.detail-value b{display:inline-block;margin-bottom:8px;padding:4px 7px;color:#684e00;background:#fcf4d6;border-radius:var(--radius-sm);font-size:12px}.detail-voice{margin:0;padding:20px 22px;border:0;border-radius:var(--radius);background:var(--warm-soft);color:#72501c;font-size:16px;line-height:1.75}.asset-grid{grid-template-columns:repeat(2,1fr)}.asset{padding:18px}.asset span{display:block;color:var(--subtle);font-size:12px}.asset b{display:block;margin-top:8px;font-size:14px}.scope{padding:20px;color:var(--muted)}.body-locked{overflow:hidden}
+
+    /* Detail narrative system inspired by the Dora case library. */
+    .detail-body{padding:0;color:#24324a}.detail-bar{height:58px;padding:0 24px}.detail-bar span{font-weight:600}.detail-hero{padding:34px 42px 26px}.detail-hero__badges,.detail-hero__meta{display:flex;flex-wrap:wrap;gap:8px}.detail-pill{padding:5px 9px;color:#53657d;background:#f3f5f8;border-radius:5px;font-size:12px;line-height:1.35}.detail-pill--blue{color:#2b62c9;background:#eef4ff}.detail-pill--violet{color:#6652b8;background:#f3f0ff}.detail-pill--dark{color:#fff;background:#202a3d}.detail-hero h2{margin:14px 0 10px;color:#18243a;font-size:34px;line-height:1.26;font-weight:650;letter-spacing:-.4px}.detail-hero__summary{max-width:820px;margin:0 0 15px;color:#58687d;font-size:15px;line-height:1.7}.detail-hero__meta span{color:#66768a;background:#f7f8fa}.detail-tabs{position:sticky;top:58px;z-index:4;padding:0 34px;display:flex;gap:4px;overflow-x:auto;background:rgba(255,255,255,.97);border-top:1px solid #edf0f4;border-bottom:1px solid #dfe5ed;backdrop-filter:blur(12px);scrollbar-width:none}.detail-tabs::-webkit-scrollbar{display:none}.detail-tab{position:relative;min-height:48px;padding:0 12px;flex:0 0 auto;border:0;background:transparent;color:#6b7788;font-size:13px;cursor:pointer}.detail-tab::after{content:"";position:absolute;right:12px;bottom:0;left:12px;height:2px;background:transparent}.detail-tab.active{color:#1769e0;font-weight:600}.detail-tab.active::after{background:#1769e0}.detail-section{padding:38px 42px;border-bottom:1px solid #edf0f4;scroll-margin-top:118px}.detail-section:last-child{border-bottom:0}.detail-section__eyebrow{margin:0 0 7px;color:#7b61d1;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}.detail-section__title{margin:0 0 20px;padding-left:12px;color:#26344c;border-left:3px solid #3b7cff;font-size:21px;line-height:1.35;font-weight:650}.brief-grid{display:grid;grid-template-columns:repeat(3,1fr);padding:22px 0;background:#f7f8fb;border:1px solid #e2e7ee;border-radius:14px}.brief-item{padding:0 24px}.brief-item+.brief-item{border-left:1px solid #e0e5ec}.brief-item h4{margin:0 0 10px;color:#2d3a50;font-size:15px}.brief-item p{margin:0;color:#526277;font-size:14px;line-height:1.75}.brief-note{margin:15px 0 0;color:#8793a3;text-align:right;font-size:11px}.change-grid{gap:14px}.change{padding:22px;border-radius:12px}.change.before{background:#fff6f4;border-color:#f1d9d3}.change.after{background:#f1faf5;border-color:#d6eadc}.change__label{display:inline-flex!important;margin-bottom:12px!important;align-items:center;gap:6px;color:#c45a48!important;font-size:11px!important}.change.after .change__label{color:#2c8a59!important}.change p{color:#405168}.ability-detail{grid-template-columns:repeat(2,1fr);gap:14px}.ability-step{position:relative;padding:20px;border-radius:12px;background:#f8fafc}.ability-step b{display:block;color:#6f83a0;font-size:11px}.ability-step h4{color:#25334a;font-size:17px}.ability-step p{color:#65758a}.ability-step .status-label{color:#59697e;background:#fff;border:1px solid #e2e7ee}.ability-step.done .status-label{color:#11755b;background:#edf9f4;border-color:#cceade}.ability-step.partial .status-label{color:#145ac0;background:#eef5ff;border-color:#d5e4fb}.ability-step.planned .status-label{color:#7a6530;background:#fff9e8;border-color:#f0e4b7}.value-grid{grid-template-columns:repeat(2,1fr);gap:14px}.detail-value{padding:20px;border-radius:12px;background:#f7f8fb}.detail-value span{color:#2b3950;font-size:14px}.detail-value b{color:#745c20;background:#fff5d8}.detail-value p{color:#59697d;font-size:14px}.detail-feedback{margin-top:14px;padding:20px 22px;color:#74531c;background:#fff9ee;border:1px solid #f0e4ca;border-radius:12px}.detail-feedback span{display:block;margin-bottom:7px;color:#a2721c;font-size:11px;font-weight:700}.detail-feedback p{margin:0;font-size:15px;line-height:1.75}.asset-grid{gap:14px}.asset{padding:18px;border-radius:12px}.asset span{font-size:11px}.asset b{color:#2c3b52;font-size:14px}.scope-stack{display:grid;gap:12px}.scope{padding:20px;border-radius:12px;background:#f8fafc}.scope strong{display:block;margin-bottom:7px;color:#28364d;font-size:14px}.scope p{margin:0;color:#5c6b7e;font-size:14px;line-height:1.75}.supplement-table{margin-top:20px;border-top:1px solid #e6eaf0}.supplement-row{display:grid;grid-template-columns:150px 1fr;padding:13px 0;border-bottom:1px solid #edf0f4}.supplement-row span{color:#8a95a4;font-size:13px}.supplement-row b{color:#3c4c62;font-size:13px;font-weight:500}.detail-quant-note{padding:13px 15px;color:#52647b;background:#eef5ff;border-radius:10px;font-size:13px;line-height:1.65}
+
+    .detail-feedback{margin-right:0;margin-left:0}
+
+    @media(max-width:1180px){.scene-grid{grid-template-columns:1fr}.l3-intro{grid-template-columns:1fr}.question-grid{grid-template-columns:repeat(2,1fr)}.detail-page{width:min(78vw,920px)}}
+    @media(max-width:860px){.topnav{display:none}.appbar__inner{padding:0 16px}.search{width:44px;justify-content:center}.search input{display:none}.explorer{display:block;border:0}.sidebar{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line)}.domain-list{display:flex;overflow:auto}.domain-list li{flex:0 0 206px}.domain-btn{border-left:0;border-bottom:3px solid transparent;border-radius:var(--radius-sm)}.domain-btn.active{border-left:0;border-bottom-color:var(--blue)}.sidebar__section:nth-child(n+2){display:none}.content{padding:34px 20px 68px}.content-head{grid-template-columns:1fr}.detail-page{width:100%}.detail-hero,.detail-section{padding-right:28px;padding-left:28px}.detail-tabs{padding:0 20px}.brief-grid{grid-template-columns:1fr}.brief-item{padding:18px 22px}.brief-item+.brief-item{border-top:1px solid #e0e5ec;border-left:0}.detail-meta,.ability-detail,.asset-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:560px){.brand span:not(.version){font-size:15px}.version{display:none}.capability-inner{padding:40px 16px 46px}.capability-inner h2{font-size:28px}.l3-intro{padding:20px}.closure{grid-template-columns:repeat(2,1fr)}.scene-card__head,.scene-card__body{padding-left:18px;padding-right:18px}.scene-card h4{font-size:21px}.ba-row{grid-template-columns:1fr;gap:8px}.ba-row span{width:max-content}.question-grid,.decision-grid{grid-template-columns:1fr}.detail-bar{padding:0 14px}.detail-hero{padding:26px 18px 22px}.detail-hero h2{font-size:28px}.detail-tabs{padding:0 8px}.detail-tab{padding:0 10px;font-size:12px}.detail-section{padding:30px 18px}.detail-section__title{font-size:19px}.change-grid,.ability-detail,.value-grid,.asset-grid{grid-template-columns:1fr}.supplement-row{grid-template-columns:110px 1fr}.footer-inner{flex-direction:column}}
+
+    .organization-switch{display:flex;gap:6px;margin-bottom:18px}.organization-switch .chip{flex:1;min-height:36px;text-align:center}.department-search{display:grid;gap:7px;margin:0 0 12px;color:var(--muted);font-size:12px}.department-search[hidden]{display:none}.department-search input{width:100%;min-width:0;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:inherit}.department-search input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+    /* Editable resource links. */
+    .asset-panel-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+    .asset-panel-heading .detail-section__title{margin:0}
+    .asset-panel-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+    .asset-edit-button,.asset-save-button,.asset-cancel-button{min-height:38px;padding:8px 13px;border:1px solid #d5e4fb;border-radius:8px;background:var(--blue-soft);color:var(--blue);font-size:13px;font-weight:600;cursor:pointer}
+    .asset-edit-button:hover,.asset-cancel-button:hover{background:#dfebff}
+    .asset-save-button{color:#fff;background:var(--blue);border-color:var(--blue)}
+    .asset-save-button:hover{background:var(--blue-dark)}
+    .asset-cancel-button{color:var(--muted);background:#fff;border-color:var(--line)}
+    .asset-notice{color:var(--green);font-size:12px}
+    .asset-notice.is-error{color:#b42318}
+    .asset-grid{margin-bottom:20px}
+    .asset{min-width:0}
+    .asset .asset-type{color:var(--muted);font-size:13px;font-weight:600}
+    .asset .asset-status{margin:7px 0 16px;font-size:14px}
+    .asset-link{display:inline-flex;align-items:center;gap:8px;max-width:100%;min-height:40px;padding:9px 13px;border:1px solid #d5e4fb;border-radius:8px;color:var(--blue);background:var(--blue-soft);font-size:14px;font-weight:600;line-height:1.5;transition:background .15s,border-color .15s}
+    .asset-link:hover{background:#dfebff;border-color:#a9c9f7}
+    .asset .asset-link__label{min-width:0;overflow-wrap:anywhere;color:inherit;font-size:inherit}
+    .asset-link svg{width:15px;height:15px;flex:none}
+    .asset .asset-empty{display:inline-flex;min-height:40px;align-items:center;padding:9px 13px;border-radius:8px;background:var(--surface);color:var(--subtle);font-size:13px}
+    .asset-editor{margin:0}
+    .asset-editor label{display:block;margin-top:13px;color:var(--muted);font-size:12px;font-weight:500}
+    .asset-editor input{display:block;width:100%;min-width:0;min-height:42px;margin-top:6px;padding:9px 11px;border:1px solid #ccd7e5;border-radius:7px;color:var(--ink);background:#fff;font-size:14px;line-height:1.5}
+    .asset-editor input:focus{outline:2px solid #c6dcff;outline-offset:1px;border-color:var(--blue)}
+    .asset-editor input[aria-invalid="true"]{border-color:#b42318}
+    .asset .asset-field-error{margin:6px 0 0;color:#b42318;font-size:12px}
+    .asset .asset-field-error[hidden]{display:none}
+    .asset-remove-button{margin-top:12px;padding:4px 0;border:0;background:none;color:#ad4054;font-size:12px;cursor:pointer}
+    .asset-remove-button:hover{text-decoration:underline}
+    .asset-editor-actions{display:flex;justify-content:flex-end;gap:10px}
+    @media(max-width:560px){.asset-panel-heading{align-items:flex-start}.asset-panel-heading .detail-section__title{flex-basis:100%}.asset-panel-actions{margin-left:15px}}
+    .asset-editor input:disabled,.asset-editor button:disabled{opacity:.65;cursor:wait}
+
+    /* v1.5.1: compact, complete context for agent readers. */
+    .agent-context{margin-top:12px;padding:10px 12px;border:1px solid #e4e9ef;border-radius:8px;background:#f8fafc}
+    .agent-context__title{margin:0 0 5px;color:#7c899b;font-size:10px;font-weight:600;line-height:1.5;letter-spacing:.3px}
+    .agent-context .supplement-table{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px;margin:0;border:0}
+    .agent-context .supplement-row{grid-template-columns:76px minmax(0,1fr);gap:6px;align-content:start;padding:5px 0;border:0;min-width:0}
+    .agent-context .supplement-row--wide{grid-column:1/-1}
+    .agent-context dt,.agent-context dd{margin:0;font-size:11px;line-height:1.5;font-weight:400;overflow-wrap:anywhere;white-space:pre-wrap}
+    .agent-context dt{color:#8894a3}.agent-context dd{color:#526176}
+    @media(max-width:560px){.agent-context .supplement-table{grid-template-columns:minmax(0,1fr)}.agent-context .supplement-row{grid-template-columns:76px minmax(0,1fr);padding:4px 0}}
+
+    /* Shared editing controls; existing card and five-section layout retained. */
+    #detail-ability .ability-detail{gap:10px}
+    #detail-ability .ability-step{padding:12px 14px;border-radius:10px}
+    #detail-ability .ability-step h4{margin:3px 0 4px;font-size:15px}
+    #detail-ability .ability-step p{font-size:12px;line-height:1.5;padding-right:0}
+    #detail-ability .status-label{margin-top:8px;padding:2px 6px;font-size:11px}
+    .content-editor{display:grid;gap:14px;margin:0}
+    .content-editor label{display:block;color:var(--muted);font-size:13px;font-weight:600}
+    .content-editor textarea{display:block;width:100%;min-width:0;min-height:94px;margin-top:6px;padding:10px 12px;resize:vertical;border:1px solid #ccd7e5;border-radius:7px;color:var(--ink);background:#fff;font:inherit;font-size:14px;line-height:1.65}
+    .content-editor textarea:focus{outline:2px solid #c6dcff;outline-offset:1px;border-color:var(--blue)}
+    .content-editor textarea:disabled,.content-editor button:disabled,.asset-edit-button:disabled{opacity:.65;cursor:wait}
+    .brief-item p,.change p,.detail-value p,.detail-feedback p,.scene-definition,.ba-row div,.voice q,.value-summary li{white-space:pre-wrap;overflow-wrap:anywhere}
+    @media(max-width:560px){#detail-ability .ability-detail{grid-template-columns:repeat(2,minmax(0,1fr))}#detail-ability .ability-step{padding:11px}#detail-ability .ability-step h4{font-size:14px}.content-editor .asset-editor-actions{flex-wrap:wrap}}
+    .content-head .catalog-status{font-size:11px;color:var(--muted);margin:8px 0 0;overflow-wrap:anywhere}
+    .pipeline-guide{max-width:1380px;margin:16px auto 30px;padding:0 28px;color:var(--muted);font-size:12px;line-height:1.8}
+    .pipeline-guide summary{cursor:pointer;color:var(--ink);font-weight:600}
+    .pipeline-guide__batches{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0}
+    .pipeline-guide__batch{border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff}
+    .pipeline-guide p{margin:6px 0}.pipeline-guide h4{margin:0;color:var(--ink);font-size:12px}
+    @media(max-width:560px){.pipeline-guide{padding:0 16px}}
+    .scene-card__tags{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}.scene-card__top .scene-type{flex-shrink:0}
+    .tag-panel{margin-bottom:12px}.tag-panel__row{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+    .tag-panel .asset-edit-button{min-height:28px;padding:4px 8px;font-size:11px}
+    .tag-editor{margin:10px 0 0;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+    .tag-editor fieldset{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 10px;padding:0;border:0}.tag-editor legend{margin-bottom:8px;color:var(--muted);font-size:12px}.tag-editor label{display:inline-flex;align-items:center;gap:6px;font-size:13px}.tag-editor input{accent-color:var(--blue)}
+    .tag-editor :disabled{opacity:.65;cursor:wait}
+  </style>
+</head>
+<body>
+  <header class="appbar"><div class="appbar__inner">
+    <a class="brand" href="#top"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7l9-5Z" stroke="currentColor" stroke-width="1.5"/><path d="m3.5 7.3 8.5 4.8 8.5-4.8M12 12.1V22M7.6 4.5l8.8 5v5L7.6 19.4v-15Z" stroke="#1769e0" stroke-width="1.2"/></svg><span>银行 AI 场景地图</span><span class="version">场景卡片体系 v1.5.2</span></a>
+    <nav class="topnav"><a class="active" href="#map">场景地图</a><a href="#capabilities">能力框架</a><a href="#pipeline">流水线说明</a></nav><div class="spacer"></div>
+    <label class="search"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.6"/></svg><input id="search" type="search" placeholder="搜索具体场景" aria-label="搜索具体场景" /></label>
+  </div></header>
+
+  <main id="top">
+    <section class="capability-band" id="capabilities"><div class="capability-inner"><h2>从看见事实，到推动业务行动</h2><div class="question-grid">
+      <article class="question"><span class="question__code">D01 · 是什么</span><h3>智能问数</h3><strong>数据是多少、在哪里、怎么样？</strong><p>查询指标与明细，呈现结构、趋势和对比，帮助用户快速看清事实。</p></article>
+      <article class="question"><span class="question__code">D02 · 为什么</span><h3>归因分析</h3><strong>问题发生在哪里，为什么波动？</strong><p>从事实定位异常，沿业务维度下钻并分析可能影响因素和根因。</p></article>
+      <article class="question"><span class="question__code">D03 · 凭什么</span><h3>可信可控</h3><strong>数据从哪来，结论能否追溯？</strong><p>说明来源、口径、资产位置和调用链路，保留权限、审计与人工确认。</p></article>
+      <article class="question"><span class="question__code">D04 · 怎么做</span><h3>业务闭环</h3><strong>结论如何进入行动并获得反馈？</strong><p>形成名单、报告、任务和推送，经人工确认后流转，并跟踪回录与复盘。</p></article>
+    </div><div class="decision-grid"><div class="decision-box"><b>AI-L1 信息支持</b><span>AI 提供事实和材料，不替业务人员判断。</span></div><div class="decision-box"><b>AI-L2 分析建议</b><span>AI 提供归因、提示或建议，由人决策。</span></div><div class="decision-box"><b>AI-L3 人工确认后闭环</b><span>AI 形成后续动作，经人工确认后执行并跟踪。</span></div></div></div></section>
+
+    <section class="explorer" id="map"><aside class="sidebar">
+      <div class="sidebar__section"><div class="organization-switch" id="organizationSwitch" role="group" aria-label="场景组织方式"><button class="chip active" data-view="department" aria-pressed="true">按部门</button><button class="chip" data-view="domain" aria-pressed="false">按业务域</button></div><p class="sidebar__label" id="organizationLabel">银行部门</p><label class="department-search" id="departmentSearchLabel">查找部门<input id="departmentSearch" type="search" placeholder="部门名称或别名" aria-label="查找部门名称或别名"></label><ul class="domain-list" id="domainList"></ul></div>
+      <div class="sidebar__section"><p class="sidebar__label">场景标签</p><div class="filter-row" id="typeFilters"><button class="chip active" data-type="all">全部</button><button class="chip" data-type="flagship">王牌场景</button><button class="chip" data-type="benchmark">标杆案例</button><button class="chip" data-type="digitalTalent">数字人才</button></div></div>
+      <div class="sidebar__section"><p class="sidebar__label">四问能力</p><div class="filter-row" id="abilityFilters"><button class="chip active" data-ability="all">全部</button><button class="chip" data-ability="D01">D01 是什么</button><button class="chip" data-ability="D02">D02 为什么</button><button class="chip" data-ability="D03">D03 凭什么</button><button class="chip" data-ability="D04">D04 怎么做</button></div></div>
+    </aside><div class="content"><div class="breadcrumb" id="breadcrumb"></div><div class="content-head"><div><h2 id="domainTitle"></h2><p id="domainDesc"></p><p class="catalog-status" id="catalogStatus" role="status" aria-live="polite"></p></div><div class="result-count" id="resultCount"></div></div><div id="sceneContent"></div></div></section>
+    <details class="pipeline-guide" id="pipeline"><summary>场景库从哪里来 · 流水线说明</summary><div id="pipelineContent"></div></details>
+  </main>
+
+  <footer><div class="footer-inner"><span>银行 AI 场景地图 · 数据驱动共享版 v0.7.0</span><span>L3 可选 · L4 主页面直达 · 目标数据不等于已实现成效</span></div></footer>
+
+  <div class="detail-layer" id="detailLayer" aria-hidden="true">
+    <button class="detail-scrim" id="detailScrim" aria-label="关闭场景详情"></button>
+    <section class="detail-page" id="detailPage" role="dialog" aria-modal="true" aria-label="具体场景详情">
+      <div class="detail-bar"><span>L4 具体场景详情</span><button class="back" id="detailBack" aria-label="关闭详情">×</button></div>
+      <div class="detail-body" id="detailBody"></div>
+    </section>
+  </div>
+
+  <script>
+    const abilityNames={D01:'智能问数',D02:'归因分析',D03:'可信可控',D04:'业务闭环'};
+    const statusNames={done:'已覆盖',partial:'部分覆盖',planned:'规划中',na:'不适用'};
+    /* PUBLISHED_CATALOG_START */
+    const embeddedCatalog=__PUBLISHED_CATALOG__;
+    let activeCatalog=embeddedCatalog,domains=embeddedCatalog.domains;
+    __CATALOG_VALIDATOR__
+    /* PUBLISHED_CATALOG_END */
+
+    const state={view:'department',department:'all',domain:'BA01',departmentQuery:'',type:'all',ability:'all',query:''};
+    let lastSceneTrigger=null;
+    const allScenes=()=>domains.flatMap(d=>d.sections.flatMap(sec=>sec.scenes.map(s=>({...displayScene(s),domainId:d.id,domainName:d.name,l2Id:sec.id,l2Name:sec.name,group:sec.group||null}))));
+    const matches=s=>(state.type==='all'||(state.type==='flagship'&&s.flagship)||(state.type==='benchmark'&&s.benchmark)||(state.type==='digitalTalent'&&s.digitalTalent))&&(state.ability==='all'||['done','partial'].includes(s.abilities[state.ability]));
+    const matchesQuery=s=>!state.query||`${s.title}${s.definition}${s.domainName}${s.l2Name}`.toLowerCase().includes(state.query.toLowerCase());
+    function domainCount(d){return d.sections.reduce((n,s)=>n+s.scenes.length,0)}
+    const approvedDepartmentRelations=()=>activeCatalog.departmentRelations?.filter(r=>r.status==='approved')||[];
+    const sceneDepartments=id=>approvedDepartmentRelations().filter(r=>r.sceneId===id).map(r=>({...r,name:activeCatalog.departments.find(d=>d.id===r.departmentId)?.name||r.departmentId}));
+    function departmentScope(scene,selection=state.department){
+      if(selection==='all')return true;
+      const relations=sceneDepartments(scene.id);
+      return selection==='pending'?!relations.length:relations.some(r=>r.departmentId===selection);
+    }
+    function setOrganizationView(view){if(!['department','domain'].includes(view))return;state.view=view;renderDomainNavigation();sync();render();}
+    function readOrganizationContext(){
+      const params=new URLSearchParams(window.location.search),view=params.get('view');
+      if(view==='domain'||view==='department')state.view=view;
+      const domain=params.get('domain'),department=params.get('department');
+      if(domain&&domains.some(d=>d.id===domain)){state.domain=domain;if(!view)state.view='domain';}
+      if(department&&(department==='all'||department==='pending'||activeCatalog.departments?.some(d=>d.id===department))){state.department=department;if(!view)state.view='department';}
+    }
+    function renderDomainNavigation(){
+      const isDept=state.view==='department',esc=escapeAssetHTML;
+      document.getElementById('organizationLabel').textContent=isDept?'银行部门 · 通用职责参考':'L1 一级业务域';
+      document.getElementById('departmentSearchLabel').hidden=!isDept;
+      const filtered=allScenes().filter(s=>matches(s)&&matchesQuery(s)),query=state.departmentQuery.toLowerCase();
+      const items=isDept?[
+        {id:'all',name:'全部场景',mark:'全',count:filtered.length},
+        ...(activeCatalog.departments||[]).filter(d=>approvedDepartmentRelations().some(r=>r.departmentId===d.id)&&(!query||[d.name,...d.aliases].join(' ').toLowerCase().includes(query))).map(d=>({...d,mark:d.id.slice(2),count:filtered.filter(s=>departmentScope(s,d.id)).length})),
+        ...(allScenes().some(s=>!sceneDepartments(s.id).length)?[{id:'pending',name:'部门待确认',mark:'待',count:filtered.filter(s=>departmentScope(s,'pending')).length}]:[])
+      ]:domains.map(d=>({...d,count:filtered.filter(s=>s.domainId===d.id).length}));
+      document.getElementById('domainList').innerHTML=items.map(d=>`<li><button class="domain-btn ${d.id===(isDept?state.department:state.domain)?'active':''}" data-${isDept?'department':'domain'}="${d.id}"><span class="domain-btn__mark">${esc(d.mark)}</span><span class="domain-btn__name">${esc(d.name)}</span><span class="domain-btn__count">${d.count}</span></button></li>`).join('');
+    }
+    function init(){
+      readOrganizationContext();
+      renderDomainNavigation();renderPipeline();
+      document.getElementById('domainList').addEventListener('click',e=>{const b=e.target.closest('[data-domain],[data-department]');if(!b)return;if(b.dataset.domain)state.domain=b.dataset.domain;else state.department=b.dataset.department;sync();render()});
+      document.getElementById('organizationSwitch').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)setOrganizationView(b.dataset.view)});
+      document.getElementById('departmentSearch').addEventListener('input',e=>{state.departmentQuery=e.target.value.trim();renderDomainNavigation();sync()});
+      document.getElementById('typeFilters').addEventListener('click',e=>setFilter(e,'type'));
+      document.getElementById('abilityFilters').addEventListener('click',e=>setFilter(e,'ability'));
+      document.getElementById('search').addEventListener('input',e=>{state.query=e.target.value.trim();render()});
+      document.getElementById('detailBack').addEventListener('click',closeDetail);
+      document.getElementById('detailScrim').addEventListener('click',closeDetail);
+      document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail()});sync();render();
+    }
+    function setFilter(e,key){const b=e.target.closest(`[data-${key}]`);if(!b)return;state[key]=b.dataset[key];sync();render()}
+    function sync(){document.querySelectorAll('[data-view]').forEach(x=>{x.classList.toggle('active',x.dataset.view===state.view);x.setAttribute('aria-pressed',String(x.dataset.view===state.view))});document.querySelectorAll('[data-domain]').forEach(x=>x.classList.toggle('active',x.dataset.domain===state.domain));document.querySelectorAll('[data-department]').forEach(x=>x.classList.toggle('active',x.dataset.department===state.department));document.querySelectorAll('[data-type]').forEach(x=>x.classList.toggle('active',x.dataset.type===state.type));document.querySelectorAll('[data-ability]').forEach(x=>x.classList.toggle('active',x.dataset.ability===state.ability))}
+    function currentScenes(){return allScenes().filter(s=>matchesQuery(s)&&(state.view==='department'?departmentScope(s):(!!state.query||s.domainId===state.domain))&&matches(s))}
+    function render(){
+      const domain=domains.find(d=>d.id===state.domain),scenes=currentScenes(),isDept=state.view==='department';
+      const department=activeCatalog.departments?.find(d=>d.id===state.department),name=isDept?(state.department==='all'?'全部场景':state.department==='pending'?'部门待确认':department?.name||'部门待确认'):domain.name;
+      document.getElementById('breadcrumb').textContent=`场景地图 / ${isDept?'按部门':'按业务域'} / ${name}${state.query?` / 搜索“${state.query}”`:''}`;
+      document.getElementById('domainTitle').textContent=name;
+      document.getElementById('domainDesc').textContent=isDept?(state.department==='all'?'按通用银行部门组织同一套场景；主责与协同为职责参考，不代表某家银行的实际组织架构。':state.department==='pending'?'这些场景仍可在全库和业务域中访问；部门关系待确认，不凭业务域自动归属。':`${department?.scope||''} ${state.query?'搜索限当前部门；':''}主责与协同均按具体场景关联。`):(state.query?'从全部业务域匹配 L4 具体场景，保留当前标签和能力筛选。':domain.desc);
+      const ownerCount=isDept&&department?scenes.filter(s=>sceneDepartments(s.id).some(r=>r.departmentId===state.department&&r.role==='owner')).length:null;
+      document.getElementById('resultCount').textContent=`${scenes.length} 个具体场景${ownerCount===null?'':` · 主责 ${ownerCount} / 协同 ${scenes.length-ownerCount}`}`;
+      renderDomainNavigation();sync();
+      if(!scenes.length){document.getElementById('sceneContent').innerHTML='<div class="empty">未找到符合条件的具体场景。</div>';return}
+      const targetDomains=isDept||state.query?domains.filter(d=>scenes.some(s=>s.domainId===d.id)):[domain];
+      let html='';targetDomains.forEach(d=>{if(isDept||state.query)html+=`<div class="l2-section"><div class="l2-head"><span class="l2-code">${d.id}</span><h3>${escapeAssetHTML(d.name)}</h3><span class="l2-count"></span></div></div>`;d.sections.forEach(sec=>{const list=scenes.filter(s=>s.domainId===d.id&&s.l2Id===sec.id);if(!list.length)return;html+=sectionTemplate(sec,list)})});
+      document.getElementById('sceneContent').innerHTML=html;document.querySelectorAll('[data-scene]').forEach(b=>b.addEventListener('click',()=>{lastSceneTrigger=b;openDetail(allScenes().find(s=>s.id===b.dataset.scene))}));
+    }
+    function sectionTemplate(sec,list){
+      const partial=sec.group&&list.length<sec.scenes.length;
+      if(partial)return `<section class="l2-section"><div class="l2-head"><span class="l2-code">${sec.id}</span><h3>${escapeAssetHTML(sec.name)}</h3><span class="l2-count">${list.length} 个场景</span></div><p class="l2-desc">${escapeAssetHTML(sec.group.title)} · 局部相关 ${list.length}/${sec.scenes.length}；仅列匹配场景，不代表负责完整闭环。</p><div class="scene-grid">${list.map(cardTemplate).join('')}</div></section>`;
+      const group=sec.group&&list.some(s=>s.group);const cards=list.map(cardTemplate).join('');
+      return `<section class="l2-section"><div class="l2-head"><span class="l2-code">${sec.id}</span><h3>${escapeAssetHTML(sec.name)}</h3><span class="l2-count">${list.length} 个场景</span></div><p class="l2-desc">${escapeAssetHTML(sec.desc)}</p>${group?`<div class="l3-group"><div class="l3-intro"><div><div class="l3-kicker"><span>${sec.group.id} · L3 场景群</span>${sec.group.flagship?'<span class="flag-tag">王牌场景</span>':''}</div><h4>${escapeAssetHTML(sec.group.title)}</h4><p>${escapeAssetHTML(sec.group.desc)}</p></div><div class="closure">${sec.group.closure.map(x=>`<span>${escapeAssetHTML(x)}</span>`).join('')}</div></div><div class="scene-grid">${cards}</div></div>`:`<div class="scene-grid">${cards}</div>`}</section>`;
+    }
+    function cardTemplate(s){
+      s={...s,title:escapeAssetHTML(s.title),definition:escapeAssetHTML(s.definition),before:escapeAssetHTML(s.before),after:escapeAssetHTML(s.after),feedback:escapeAssetHTML(s.feedback),metrics:s.metrics.map(metric=>({...metric,text:escapeAssetHTML(metric.text)}))};
+      const values=s.metrics.map(x=>`<li>${x.text}</li>`).join('');
+      return `<button class="scene-card" data-scene="${s.id}" aria-label="查看${s.title}详情"><div class="scene-card__head"><div class="scene-card__top"><span class="scene-type">L4 · 具体场景</span><span class="scene-card__tags">${tagBadgesTemplate(s)}</span></div><h4>${s.title}</h4><p class="scene-definition">${s.definition}</p></div><div class="scene-card__body"><div class="ba-row before"><span>Before</span><div>${s.before}</div></div><div class="ba-row after"><span>After</span><div>${s.after}</div></div><blockquote class="voice"><span class="card-section-label">用户反馈 · 预期体验</span><q>${s.feedback.replace(/[“”]/g,'')}</q></blockquote><div class="value-summary"><span class="card-section-label">核心价值</span><ol>${values}</ol></div></div><div class="scene-card__foot"><span class="open">查看详情 →</span></div></button>`;
+    }
+
+
+const assetCloudConfig={url:'https://aziiqntgqsrxovdgydwi.supabase.co',publishableKey:'sb_publishable_JtMQaPBm-Rw162_B8JlZaA_9IN8c31r'};
+    const assetTypes=[
+      {key:'方案 PPT',label:'查看方案'},
+      {key:'看板 Demo',label:'打开看板'},
+      {key:'Dora 体验',label:'进入体验'},
+      {key:'短视频',label:'观看视频'}
+    ];
+    let currentDetailScene=null,assetEditing=false,assetNotice='',assetNoticeIsError=false;
+    let sharedAssetRows=new Map(),assetCloudState='loading',assetCloudMessage='';
+    let assetRefreshPromise=null,assetEditRevision=0,assetEditorEpoch=0,assetSaving=false;
+    const escapeAssetHTML=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    function normalizeAssetURL(value){
+      if(typeof value!=='string'||!value.trim())return '';
+      try{const url=new URL(value.trim());return ['http:','https:'].includes(url.protocol)&&url.hostname?url.href:''}catch{return ''}
+    }
+    function cleanAssetRow(row){
+      if(!row||typeof row.scene_id!=='string'||!Number.isSafeInteger(row.revision)||row.revision<0)throw new Error('共享数据格式不正确，请稍后重试。');
+      const links={};
+      assetTypes.forEach(type=>{
+        const item=row.links?.[type.key],url=normalizeAssetURL(item?.url);
+        if(url)links[type.key]={url,label:typeof item.label==='string'&&item.label.trim()?item.label.trim().slice(0,120):type.label};
+      });
+      return {...row,links};
+    }
+    async function assetCloudRequest(path,options={}){
+      if(!assetCloudConfig.url||!assetCloudConfig.publishableKey)throw new Error('共享服务尚未配置。');
+      const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),20000);
+      try{
+        const response=await fetch(assetCloudConfig.url+'/rest/v1/'+path,{
+          ...options,cache:'no-store',signal:controller.signal,
+          headers:{apikey:assetCloudConfig.publishableKey,'Content-Type':'application/json',...options.headers}
+        });
+        if(!response.ok){
+          const error=new Error(response.status===409?'内容已被其他人更新。请先保留本次填写，取消后重新编辑。':response.status===400?'填写内容未通过校验，请检查后重试。':'暂时无法连接共享服务，请稍后重试。');
+          error.status=response.status;throw error;
+        }
+        return await response.json();
+      }catch(error){
+        if(error.name==='AbortError')throw new Error('连接超时，保存结果尚未确认，请稍后重新加载核对。');
+        if(error instanceof TypeError)throw new Error('网络连接失败，请稍后重试。');
+        throw error;
+      }finally{clearTimeout(timeout)}
+    }
+    function refreshSharedAssetLinks(){
+      if(assetRefreshPromise)return assetRefreshPromise;
+      assetCloudState='loading';assetCloudMessage='';
+      if(currentDetailScene&&!assetEditing)renderAssetPanel();
+      assetRefreshPromise=(async()=>{
+        try{
+          const rows=await assetCloudRequest('scene_map_assets?select=scene_id,links,revision,updated_at&limit=1000');
+          if(!Array.isArray(rows))throw new Error('共享数据格式不正确，请稍后重试。');
+          const next=new Map(rows.map(row=>{const cleaned=cleanAssetRow(row);return [cleaned.scene_id,cleaned]}));
+          sharedAssetRows=next;assetCloudState='ready';return true;
+        }catch(error){assetCloudState='error';assetCloudMessage=error.message;return false}
+        finally{if(currentDetailScene&&!assetEditing)renderAssetPanel()}
+      })().finally(()=>{assetRefreshPromise=null});
+      return assetRefreshPromise;
+    }
+    function assetPanelTemplate(scene){
+      const registered=sharedAssetRows.has(scene.id),links=sharedAssetRows.get(scene.id)?.links||{};
+      const externalIcon='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4h6v6M20 4 10 14M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const cards=assetTypes.map((type,index)=>{
+        const link=links[type.key],label=link?.label||type.label;
+        const status=scene.assets?.[type.key]||'待补充';
+        const content=assetEditing?
+          `<label for="asset-label-${index}">显示文字<input id="asset-label-${index}" name="label-${index}" type="text" maxlength="120" value="${escapeAssetHTML(label)}" placeholder="${type.label}" autocomplete="off"></label><label for="asset-url-${index}">链接地址<input id="asset-url-${index}" name="url-${index}" type="url" inputmode="url" maxlength="8192" value="${escapeAssetHTML(link?.url||'')}" placeholder="https://…" autocomplete="off" aria-describedby="asset-error-${index}"></label><p class="asset-field-error" id="asset-error-${index}" role="alert" hidden></p>${link?`<button type="button" class="asset-remove-button" data-remove-asset="${index}">移除链接</button>`:''}`:
+          link?`<a class="asset-link" href="${escapeAssetHTML(link.url)}" target="_blank" rel="noopener noreferrer"><span class="asset-link__label">${escapeAssetHTML(label)}</span>${externalIcon}</a>`:`<span class="asset-empty">${assetCloudState==='loading'?'正在加载链接…':assetCloudState==='error'&&!sharedAssetRows.has(scene.id)?'链接暂不可用':'未配置链接'}</span>`;
+        return `<article class="asset"><span class="asset-type">${type.key}</span><b class="asset-status">${escapeAssetHTML(status)}</b>${content}</article>`;
+      }).join('');
+      const notice=assetCloudState==='ready'&&!registered?'该场景尚未登记到共享服务，其他场景可正常编辑。':assetEditing||assetCloudState==='ready'?assetNotice:assetCloudState==='loading'?'正在同步链接…':assetCloudMessage;
+      const action=assetEditing?'':assetCloudState==='ready'&&registered?'<button type="button" class="asset-edit-button" id="editAssetLinks">编辑链接</button>':assetCloudState==='error'?'<button type="button" class="asset-edit-button" id="retryAssetLinks">重试连接</button>':'';
+      return `<div class="asset-panel-heading"><h3 class="detail-section__title">场景资产与能力边界</h3><div class="asset-panel-actions"><span class="asset-notice ${assetNoticeIsError||assetCloudState==='error'?'is-error':''}" role="status" aria-live="polite">${escapeAssetHTML(notice)}</span>${action}</div></div>${assetEditing?`<form class="asset-editor" id="assetEditor" novalidate><div class="asset-grid">${cards}</div><div class="asset-editor-actions"><button type="button" class="asset-cancel-button" id="cancelAssetLinks">取消</button><button type="submit" class="asset-save-button">保存链接</button></div></form>`:`<div class="asset-grid">${cards}</div>`}`;
+    }
+    function renderAssetPanel(){
+      const panel=document.getElementById('sceneAssetPanel');
+      if(currentDetailScene&&panel)panel.innerHTML=assetPanelTemplate(currentDetailScene);
+    }
+    function bindAssetPanel(){
+      const panel=document.getElementById('sceneAssetPanel');
+      panel.addEventListener('click',async event=>{
+        if(assetSaving)return;
+        if(event.target.closest('#editAssetLinks')){
+          if(assetCloudState!=='ready'||!sharedAssetRows.has(currentDetailScene.id))return;
+          assetEditRevision=sharedAssetRows.get(currentDetailScene.id).revision;
+          assetEditing=true;assetNotice='';assetNoticeIsError=false;renderAssetPanel();document.getElementById('asset-label-0').focus({preventScroll:true});
+        }else if(event.target.closest('#cancelAssetLinks')){
+          assetEditing=false;assetNotice='';assetNoticeIsError=false;renderAssetPanel();
+          const epoch=assetEditorEpoch;await refreshSharedAssetLinks();
+          if(epoch===assetEditorEpoch)document.getElementById('editAssetLinks')?.focus({preventScroll:true});
+        }else if(event.target.closest('#retryAssetLinks')){
+          await refreshSharedAssetLinks();
+        }else{
+          const remove=event.target.closest('[data-remove-asset]');
+          if(!remove)return;
+          const index=Number(remove.dataset.removeAsset);
+          if(!confirm('移除这条链接？点击“保存链接”后生效。'))return;
+          const input=document.getElementById('asset-url-'+index);
+          input.value='';input.removeAttribute('aria-invalid');
+          document.getElementById('asset-label-'+index).value=assetTypes[index].label;
+          document.getElementById('asset-error-'+index).hidden=true;
+          remove.remove();input.focus({preventScroll:true});
+        }
+      });
+      panel.addEventListener('input',event=>{
+        if(!event.target.name?.startsWith('url-'))return;
+        event.target.removeAttribute('aria-invalid');
+        document.getElementById('asset-error-'+event.target.name.slice(4)).hidden=true;
+      });
+      panel.addEventListener('submit',async event=>{
+        if(event.target.id!=='assetEditor')return;
+        event.preventDefault();if(assetSaving)return;
+        const sceneId=currentDetailScene.id,epoch=assetEditorEpoch,updates={},form=event.target;
+        let firstInvalid=null;
+        assetTypes.forEach((type,index)=>{
+          const input=document.getElementById('asset-url-'+index),raw=input.value.trim(),url=normalizeAssetURL(raw);
+          const error=document.getElementById('asset-error-'+index);
+          if(raw&&!url){
+            input.setAttribute('aria-invalid','true');error.textContent='请输入完整的 http:// 或 https:// 链接';error.hidden=false;firstInvalid??=input;
+          }else{
+            input.removeAttribute('aria-invalid');error.hidden=true;
+            if(url)updates[type.key]={url,label:document.getElementById('asset-label-'+index).value.trim()||type.label};
+          }
+        });
+        if(firstInvalid){firstInvalid.focus();return}
+        assetSaving=true;form.querySelectorAll('input,button').forEach(el=>el.disabled=true);
+        const submit=form.querySelector('[type="submit"]');submit.textContent='正在保存…';
+        const notice=panel.querySelector('.asset-notice');notice.textContent='';notice.classList.remove('is-error');
+        try{
+          const result=await assetCloudRequest('rpc/scene_map_save_links',{method:'POST',body:JSON.stringify({p_scene_id:sceneId,p_expected_revision:assetEditRevision,p_links:updates})});
+          const row=cleanAssetRow(Array.isArray(result)?result[0]:result);
+          if(row.scene_id!==sceneId)throw new Error('返回的场景信息不匹配，请重新加载核对。');
+          sharedAssetRows.set(sceneId,row);
+          if(epoch!==assetEditorEpoch)return;
+          assetEditing=false;assetNotice='链接已共享保存';assetNoticeIsError=false;
+          renderAssetPanel();document.getElementById('editAssetLinks')?.focus({preventScroll:true});
+        }catch(error){
+          if(epoch!==assetEditorEpoch)return;
+          assetNotice=error.message;assetNoticeIsError=true;notice.textContent=assetNotice;notice.classList.add('is-error');
+          form.querySelectorAll('input,button').forEach(el=>el.disabled=false);submit.textContent='保存链接';
+        }finally{assetSaving=false}
+      });
+    }
+    // Shared scene copy: one field model for cards, brief, comparison and value.
+    const contentFields={definition:'这是什么',before:'Before · 解决什么问题',after:'After · 现在怎么做',efficiency:'效率价值',quality:'质量/风险价值',management:'经营/管理价值',feedback:'用户反馈 · 预期体验'};
+    const contentGroups={overview:['definition','before','efficiency','quality','management'],change:['before','after'],value:['efficiency','quality','management','feedback']};
+    const contentTitles={overview:'30 秒场景概览',change:'同一件事，现在怎么做',value:'业务价值与用户体验'};
+    const metricContentKeys=['efficiency','quality','management'];
+    let sharedContentRows=new Map(),contentCloudState='loading',contentCloudMessage='',contentRefreshPromise=null;
+    let contentEditor=null,contentSaving=false,contentNotice='',contentNoticeSection='';
+    function cleanContentRow(row){
+      if(!row||typeof row.scene_id!=='string'||!Number.isSafeInteger(row.revision)||row.revision<0||!row.content||Array.isArray(row.content)||typeof row.content!=='object')throw new Error('共享文案格式不正确，请重试。');
+      const content={};
+      Object.keys(contentFields).forEach(key=>{const value=row.content[key];if(value!==undefined){if(typeof value!=='string'||!value.trim()||value.length>2000)throw new Error('共享文案格式不正确，请重试。');content[key]=value;}});
+      return {...row,content};
+    }
+    function displayScene(scene){
+      const copy=sharedContentRows.get(scene.id)?.content||{};
+      return {...scene,...(sharedTagRows.get(scene.id)?.tags||{}),...Object.fromEntries(['definition','before','after','feedback'].filter(key=>copy[key]!==undefined).map(key=>[key,copy[key]])),metrics:scene.metrics.map((metric,index)=>({...metric,text:copy[metricContentKeys[index]]??metric.text}))};
+    }
+    function contentFieldValues(scene){
+      return {definition:scene.definition,before:scene.before,after:scene.after,feedback:scene.feedback,efficiency:scene.metrics[0].text,quality:scene.metrics[1].text,management:scene.metrics[2].text};
+    }
+    function contentViewTemplate(scene,section){
+      const esc=escapeAssetHTML;
+      if(section==='overview')return `<div class="brief-grid"><article class="brief-item"><h4>💡 这是什么</h4><p>${esc(scene.definition)}</p></article><article class="brief-item"><h4>🎯 解决什么问题</h4><p>${esc(scene.before)}</p></article><article class="brief-item"><h4>📈 带来什么价值</h4><p>${scene.metrics.map(metric=>esc(metric.text)).join('；')}</p></article></div><p class="brief-note">摘要基于当前场景台账，未核实成效不作为已实现结果。</p>`;
+      if(section==='change')return `<div class="change-grid"><article class="change before"><span class="change__label">◀ BEFORE · 过去</span><p>${esc(scene.before)}</p></article><article class="change after"><span class="change__label">▶ AFTER · 现在</span><p>${esc(scene.after)}</p></article></div>`;
+      return `<div class="value-grid">${scene.metrics.map(metric=>`<article class="detail-value"><span>${esc(metric.dimension)}</span><p>${esc(metric.text)}</p></article>`).join('')}</div><blockquote class="detail-feedback"><span>用户反馈 · 预期体验</span><p>${esc(scene.feedback)}</p></blockquote>`;
+    }
+    function contentPanelTemplate(scene,section){
+      const editor=contentEditor?.sceneId===scene.id&&contentEditor.section===section?contentEditor:null;
+      const registered=sharedContentRows.has(scene.id),ready=contentCloudState==='ready'&&registered;
+      let message=contentNoticeSection===section?contentNotice:'';
+      if(!message&&contentCloudState==='loading')message='正在同步内容…';
+      if(!message&&contentCloudState==='error')message=contentCloudMessage;
+      if(!message&&contentCloudState==='ready'&&!registered)message='该场景尚未登记到共享服务，其他场景可正常编辑。';
+      const action=editor?'':ready?`<button type="button" class="asset-edit-button" data-edit-content="${section}" ${contentEditor?'disabled':''}>编辑${section==='overview'?'概览':section==='change'?'对照':'价值与反馈'}</button>`:`<button type="button" class="asset-edit-button" data-retry-content>重试连接</button>`;
+      const heading=`<div class="asset-panel-heading"><h3 class="detail-section__title">${contentTitles[section]}</h3><div class="asset-panel-actions"><span class="asset-notice ${contentCloudState==='error'||editor?.error?'is-error':''}" role="status" aria-live="polite">${escapeAssetHTML(message)}</span>${action}</div></div>`;
+      if(!editor)return heading+contentViewTemplate(scene,section);
+      return heading+`<form class="content-editor" data-content-form="${section}" novalidate>${contentGroups[section].map(key=>`<label for="content-${key}">${contentFields[key]}<textarea id="content-${key}" name="${key}" rows="3" maxlength="2000" required>${escapeAssetHTML(editor.draft[key])}</textarea></label>`).join('')}<div class="asset-editor-actions"><button type="button" class="asset-cancel-button" data-cancel-content>取消</button><button type="submit" class="asset-save-button">保存内容</button></div></form>`;
+    }
+    function renderContentPanels(){
+      if(!currentDetailScene)return;
+      const fresh=allScenes().find(scene=>scene.id===currentDetailScene.id);if(!fresh)return;
+      currentDetailScene=fresh;
+      Object.keys(contentGroups).forEach(section=>{const panel=document.getElementById('sceneContent-'+section);if(panel&&!(contentEditor?.section===section))panel.innerHTML=contentPanelTemplate(fresh,section);});
+      const summary=document.querySelector('.detail-hero__summary');if(summary)summary.textContent=fresh.definition;
+    }
+    function renderContentEditor(){
+      if(!contentEditor||!currentDetailScene)return;
+      document.getElementById('sceneContent-'+contentEditor.section).innerHTML=contentPanelTemplate(currentDetailScene,contentEditor.section);
+    }
+    function refreshSharedSceneContent(){
+      if(contentRefreshPromise)return contentRefreshPromise;
+      contentCloudState='loading';contentCloudMessage='';renderContentPanels();
+      contentRefreshPromise=(async()=>{
+        try{
+          const rows=await assetCloudRequest('scene_map_content?select=scene_id,content,revision,updated_at&limit=1000');
+          if(!Array.isArray(rows))throw new Error('共享文案格式不正确，请重试。');
+          const next=new Map(rows.map(row=>{const clean=cleanContentRow(row);return [clean.scene_id,clean]}));
+          sharedContentRows=next;contentCloudState='ready';render();return true;
+        }catch(error){contentCloudState='error';contentCloudMessage=error.status===404?'共享内容服务尚未启用，请完成项目升级后重试。':error.message;return false;}
+        finally{renderContentPanels();}
+      })().finally(()=>{contentRefreshPromise=null;});
+      return contentRefreshPromise;
+    }
+    function bindContentPanels(){
+      document.getElementById('detailBody').addEventListener('click',async event=>{
+        if(contentSaving)return;
+        const edit=event.target.closest('[data-edit-content]');
+        if(edit){
+          if(contentEditor||contentCloudState!=='ready'||!sharedContentRows.has(currentDetailScene.id))return;
+          const section=edit.dataset.editContent,values=contentFieldValues(currentDetailScene);
+          contentEditor={sceneId:currentDetailScene.id,section,revision:sharedContentRows.get(currentDetailScene.id).revision,initial:values,draft:{...values},error:false};contentNotice='';contentNoticeSection=section;
+          renderContentPanels();renderContentEditor();document.getElementById('content-'+contentGroups[section][0]).focus({preventScroll:true});
+        }else if(event.target.closest('[data-cancel-content]')){
+          const {section,sceneId}=contentEditor;contentEditor=null;contentNotice='';renderContentPanels();
+          await refreshSharedSceneContent();
+          if(currentDetailScene?.id===sceneId&&!contentEditor)document.querySelector(`[data-edit-content="${section}"]`)?.focus({preventScroll:true});
+        }else if(event.target.closest('[data-retry-content]'))await refreshSharedSceneContent();
+      });
+      document.getElementById('detailBody').addEventListener('input',event=>{
+        if(contentEditor&&event.target.closest('[data-content-form]'))contentEditor.draft[event.target.name]=event.target.value;
+      });
+      document.getElementById('detailBody').addEventListener('submit',async event=>{
+        if(!event.target.matches('[data-content-form]'))return;
+        event.preventDefault();if(contentSaving||!contentEditor)return;
+        const editor=contentEditor,form=event.target,changes={};
+        for(const key of contentGroups[editor.section]){
+          const value=editor.draft[key].trim();
+          if(!value||value.length>2000){contentNotice='每项请填写1至2000字内容。';contentNoticeSection=editor.section;editor.error=true;renderContentEditor();document.getElementById('content-'+key).focus({preventScroll:true});return;}
+          if(value!==editor.initial[key])changes[key]=value;
+        }
+        if(!Object.keys(changes).length){contentEditor=null;contentNotice='内容未变化';contentNoticeSection=editor.section;renderContentPanels();return;}
+        contentSaving=true;form.querySelectorAll('textarea,button').forEach(element=>element.disabled=true);form.querySelector('[type="submit"]').textContent='正在保存…';
+        try{
+          const result=await assetCloudRequest('rpc/scene_map_save_content',{method:'POST',body:JSON.stringify({p_scene_id:editor.sceneId,p_expected_revision:editor.revision,p_changes:changes})});
+          const row=cleanContentRow(Array.isArray(result)?result[0]:result);if(row.scene_id!==editor.sceneId)throw new Error('返回场景不匹配，请重新加载核对。');
+          sharedContentRows.set(row.scene_id,row);render();
+          if(contentEditor!==editor)return;
+          contentEditor=null;contentNotice='内容已共享保存';contentNoticeSection=editor.section;renderContentPanels();
+          document.querySelector(`[data-edit-content="${editor.section}"]`)?.focus({preventScroll:true});
+        }catch(error){
+          if(contentEditor!==editor)return;
+          editor.error=true;contentNoticeSection=editor.section;contentNotice=error.status===409?'内容已被其他人更新，本次填写已保留。请复制后取消，再重新打开编辑。':error.message;renderContentEditor();
+        }finally{contentSaving=false;}
+      });
+    }
+
+    const tagFields={digitalTalent:'数字人才',flagship:'王牌场景',benchmark:'标杆案例'};
+    let sharedTagRows=new Map(),tagCloudState='loading',tagCloudMessage='',tagRefreshPromise=null;
+    let tagEditor=null,tagSaving=false,tagNotice='',tagError=false;
+    function cleanTagRow(row){
+      if(!row||typeof row.scene_id!=='string'||!Number.isSafeInteger(row.revision)||row.revision<0||!row.tags||typeof row.tags!=='object'||Array.isArray(row.tags)||Object.entries(row.tags).some(([key,value])=>!Object.hasOwn(tagFields,key)||typeof value!=='boolean'))throw new Error('共享标签格式不正确，请重试。');
+      return {...row,tags:{...row.tags}};
+    }
+    function tagBadgesTemplate(scene,detail=false){
+      return Object.entries(tagFields).filter(([key])=>scene[key]).map(([,label])=>`<span class="${detail?'detail-pill detail-pill--violet':'scene-source-tag'}">${label}</span>`).join('');
+    }
+    function tagPanelTemplate(scene){
+      const editor=tagEditor?.sceneId===scene.id?tagEditor:null,ready=tagCloudState==='ready'&&sharedTagRows.has(scene.id);
+      const message=tagNotice||(tagCloudState==='loading'?'正在同步标签…':tagCloudState==='error'?tagCloudMessage:!ready?'该场景尚未登记到标签服务。':'');
+      const action=editor?'':ready?'<button type="button" class="asset-edit-button" data-edit-tags>编辑标签</button>':'<button type="button" class="asset-edit-button" data-retry-tags>重试标签连接</button>';
+      return `<div class="tag-panel__row"><span class="detail-pill detail-pill--blue">L4 具体场景</span>${tagBadgesTemplate(scene,true)}${scene.group?.flagship?'<span class="detail-pill detail-pill--violet">王牌场景群</span>':''}${scene.gateway?'<span class="detail-pill detail-pill--dark">资产网关</span>':''}${action}<span class="asset-notice ${tagError||tagCloudState==='error'?'is-error':''}" role="status" aria-live="polite">${escapeAssetHTML(message)}</span></div>${editor?`<form class="tag-editor" data-tag-form><fieldset><legend>场景展示标签（可多选，也可全部取消）</legend>${Object.entries(tagFields).map(([key,label])=>`<label><input type="checkbox" name="${key}" ${editor.draft[key]?'checked':''}>${label}</label>`).join('')}</fieldset><div class="asset-editor-actions"><button type="button" class="asset-cancel-button" data-cancel-tags>取消</button><button type="submit" class="asset-save-button">保存标签</button></div></form>`:''}`;
+    }
+    function renderTagPanel(){
+      if(!currentDetailScene)return;
+      currentDetailScene=allScenes().find(scene=>scene.id===currentDetailScene.id)||currentDetailScene;
+      const panel=document.getElementById('sceneTagPanel');if(panel)panel.innerHTML=tagPanelTemplate(currentDetailScene);
+    }
+    function refreshSharedSceneTags(){
+      if(tagRefreshPromise)return tagRefreshPromise;
+      tagCloudState='loading';tagCloudMessage='';if(!tagEditor)renderTagPanel();
+      tagRefreshPromise=(async()=>{
+        try{
+          const rows=await assetCloudRequest('scene_map_tags?select=scene_id,tags,revision,updated_at&limit=1000');
+          if(!Array.isArray(rows))throw new Error('共享标签格式不正确，请重试。');
+          const next=new Map(rows.map(row=>{const clean=cleanTagRow(row);return [clean.scene_id,clean]}));
+          sharedTagRows=next;tagCloudState='ready';render();return true;
+        }catch(error){tagCloudState='error';tagCloudMessage=error.status===404?'共享标签服务尚未启用，请完成后台升级后重试。':error.message;return false;}
+        finally{if(!tagEditor)renderTagPanel();}
+      })().finally(()=>{tagRefreshPromise=null;});
+      return tagRefreshPromise;
+    }
+    function bindTagPanel(){
+      const body=document.getElementById('detailBody');
+      body.addEventListener('click',async event=>{
+        if(tagSaving)return;
+        if(event.target.closest('[data-edit-tags]')){
+          if(tagEditor||!currentDetailScene||tagCloudState!=='ready'||!sharedTagRows.has(currentDetailScene.id))return;
+          const fresh=allScenes().find(scene=>scene.id===currentDetailScene.id),initial=Object.fromEntries(Object.keys(tagFields).map(key=>[key,fresh[key]]));
+          tagEditor={sceneId:fresh.id,revision:sharedTagRows.get(fresh.id).revision,initial,draft:{...initial}};tagNotice='';tagError=false;renderTagPanel();
+          document.querySelector('[data-tag-form] input')?.focus({preventScroll:true});
+        }else if(event.target.closest('[data-cancel-tags]')){
+          tagEditor=null;tagNotice='';tagError=false;renderTagPanel();await refreshSharedSceneTags();
+        }else if(event.target.closest('[data-retry-tags]'))await refreshSharedSceneTags();
+      });
+      body.addEventListener('change',event=>{if(tagEditor&&event.target.closest('[data-tag-form]')&&Object.hasOwn(tagFields,event.target.name))tagEditor.draft[event.target.name]=event.target.checked;});
+      body.addEventListener('submit',async event=>{
+        if(!event.target.matches('[data-tag-form]'))return;
+        event.preventDefault();if(tagSaving||!tagEditor)return;
+        const editor=tagEditor,changes=Object.fromEntries(Object.keys(tagFields).filter(key=>editor.draft[key]!==editor.initial[key]).map(key=>[key,editor.draft[key]]));
+        if(!Object.keys(changes).length){tagEditor=null;tagNotice='标签未变化';renderTagPanel();return;}
+        tagSaving=true;event.target.querySelectorAll('input,button').forEach(element=>element.disabled=true);event.target.querySelector('[type="submit"]').textContent='正在保存…';
+        try{
+          const result=await assetCloudRequest('rpc/scene_map_save_tags',{method:'POST',body:JSON.stringify({p_scene_id:editor.sceneId,p_expected_revision:editor.revision,p_changes:changes})});
+          const row=cleanTagRow(Array.isArray(result)?result[0]:result);if(row.scene_id!==editor.sceneId)throw new Error('返回场景不匹配，请重新加载核对。');
+          sharedTagRows.set(row.scene_id,row);render();
+          if(tagEditor!==editor)return;
+          tagEditor=null;tagError=false;tagNotice='标签已共享保存';renderTagPanel();document.querySelector('[data-edit-tags]')?.focus({preventScroll:true});
+        }catch(error){
+          if(tagEditor!==editor)return;
+          tagError=true;tagNotice=error.status===409?'标签已被其他人更新，本次选择已保留。请记下选择后取消，再重新编辑。':error.message;renderTagPanel();
+        }finally{tagSaving=false;}
+      });
+    }
+    function agentContextTemplate(s,gatewayLabel){
+      const fields=[
+        ['role','主要使用角色',s.role||'待确认'],
+        ['trigger','触发时点',s.trigger||'待确认'],
+        ['task','业务任务',s.task||s.definition],
+        ['dataScope','主要数据范围',s.dataScope||'待确认'],
+        ['outputs','输出结果',s.outputs||'待确认'],
+        ['collaboration','Agent 协作',s.collaboration||'待确认'],
+        ['manualCheck','人工确认点',s.manualCheck||'正式结论和后续动作由业务人员确认'],
+        ['id','场景编码',s.id],
+        ['version','场景版本',s.version],
+        ['path','所属路径',`${s.domainId} / ${s.l2Id}${s.group?` / ${s.group.id}`:''}`],
+        ['departments','部门关系',sceneDepartments(s.id).map(r=>`${r.name}（${r.role==='owner'?'主责':'协同'}，${r.basis==='material-fact'?'材料依据':'顾问建议'}）`).join('；')||'部门待确认'],
+        ['departmentConditions','职责适用条件',[...new Set(sceneDepartments(s.id).map(r=>r.condition))].join('；')||'未审核关系不进入部门导航'],
+        ['values','价值维度',s.values.join('、')],
+        ['gateway','资产网关',gatewayLabel]
+      ];
+      return `<aside class="agent-context" aria-label="Agent 场景上下文" data-scene-id="${escapeAssetHTML(s.id)}"><h4 class="agent-context__title">AGENT CONTEXT · 场景上下文</h4><dl class="supplement-table">${fields.map(([key,label,value])=>`<div class="supplement-row ${key==='collaboration'?'supplement-row--wide':''}" data-field="${key}"><dt>${label}</dt><dd>${escapeAssetHTML(value)}</dd></div>`).join('')}</dl></aside>`;
+    }
+    function openDetail(s){
+      tagEditor=null;tagNotice='';tagError=false;
+      contentEditor=null;contentNotice='';contentNoticeSection='';
+      s=displayScene(s);currentDetailScene=s;assetEditorEpoch++;assetEditing=false;assetNotice='';assetNoticeIsError=false;
+      const questionText={D01:'数据是多少、在哪里、怎么样',D02:'问题在哪里、为什么波动',D03:'数据从哪来、结论如何追溯',D04:'结论如何进入行动并获得反馈'};
+      const abilityDetail=Object.entries(s.abilities).map(([k,v])=>`<article class="ability-step ${v}"><b>${k}</b><h4>${abilityNames[k]}</h4><p>${questionText[k]}</p><span class="status-label">${statusNames[v]}</span></article>`).join('');
+      const gatewayLabel=s.gateway?'高度依赖历史报表资产':'非必需能力';
+      document.getElementById('detailBody').innerHTML=`
+        <header class="detail-hero">
+          <div class="tag-panel" id="sceneTagPanel">${tagPanelTemplate(s)}</div>
+          <h2>${escapeAssetHTML(s.title)}</h2>
+          <p class="detail-hero__summary">${escapeAssetHTML(s.definition)}</p>
+          <div class="detail-hero__meta"><span class="detail-pill">业务域：${escapeAssetHTML(s.domainName)}</span><span class="detail-pill">业务环节：${escapeAssetHTML(s.l2Name)}</span><span class="detail-pill">AI 参与：${s.decision}</span><span class="detail-pill">成熟度：${escapeAssetHTML(s.maturity)}</span></div>
+        </header>
+        <nav class="detail-tabs" aria-label="详情章节"><button class="detail-tab active" data-detail-target="detail-overview">场景概览</button><button class="detail-tab" data-detail-target="detail-change">Before / After</button><button class="detail-tab" data-detail-target="detail-ability">能力深度</button><button class="detail-tab" data-detail-target="detail-value">业务价值</button><button class="detail-tab" data-detail-target="detail-resource">资产与边界</button></nav>
+        <section class="detail-section" id="detail-overview"><p class="detail-section__eyebrow">SCENE BRIEF</p><div id="sceneContent-overview">${contentPanelTemplate(s,'overview')}</div></section>
+        <section class="detail-section" id="detail-change"><p class="detail-section__eyebrow">BEFORE / AFTER</p><div id="sceneContent-change">${contentPanelTemplate(s,'change')}</div></section>
+        <section class="detail-section" id="detail-ability"><p class="detail-section__eyebrow">AI CAPABILITY</p><h3 class="detail-section__title">四问能力深度</h3><div class="ability-detail">${abilityDetail}</div></section>
+        <section class="detail-section" id="detail-value"><p class="detail-section__eyebrow">BUSINESS VALUE</p><div id="sceneContent-value">${contentPanelTemplate(s,'value')}</div></section>
+        <section class="detail-section" id="detail-resource"><p class="detail-section__eyebrow">ASSETS & GOVERNANCE</p><div id="sceneAssetPanel">${assetPanelTemplate(s)}</div><div class="scope-stack"><div class="scope"><strong>当前实现范围</strong><p>${escapeAssetHTML(s.scope)}</p></div><div class="scope"><strong>能力与责任边界</strong><p>${escapeAssetHTML(s.boundary||'页面内容用于场景介绍和需求讨论。正式数据口径、查询权限、归因结论、对外材料和任务流转均需由业务责任人确认；局部实现不代表全量指标和全流程已完成。')}</p></div></div>${agentContextTemplate(s,gatewayLabel)}</section>`;
+      const layer=document.getElementById('detailLayer');const page=document.getElementById('detailPage');page.scrollTop=0;bindDetailTabs(page);bindAssetPanel();layer.classList.add('open');layer.setAttribute('aria-hidden','false');document.body.classList.add('body-locked');document.getElementById('detailBack').focus();refreshSharedAssetLinks();refreshSharedSceneContent();refreshSharedSceneTags();
+    }
+    function bindDetailTabs(page){
+      const tabs=[...page.querySelectorAll('[data-detail-target]')],sections=tabs.map(tab=>document.getElementById(tab.dataset.detailTarget));
+      const activate=id=>tabs.forEach(tab=>tab.classList.toggle('active',tab.dataset.detailTarget===id));
+      tabs.forEach(tab=>tab.addEventListener('click',()=>{const section=document.getElementById(tab.dataset.detailTarget);activate(tab.dataset.detailTarget);page.scrollTo({top:section.offsetTop-112,behavior:'smooth'})}));
+      page.onscroll=()=>{let current=sections[0];sections.forEach(section=>{if(section.offsetTop-130<=page.scrollTop)current=section});activate(current.id)};
+    }
+    function closeDetail(){const layer=document.getElementById('detailLayer');if(!layer.classList.contains('open'))return;if(contentSaving||tagSaving)return;if((contentEditor||tagEditor)&&!confirm('还有未保存的内容，关闭后将放弃本次填写。继续关闭？'))return;const closingId=currentDetailScene?.id;contentEditor=null;tagEditor=null;currentDetailScene=null;assetEditorEpoch++;assetEditing=false;layer.classList.remove('open');layer.setAttribute('aria-hidden','true');document.body.classList.remove('body-locked');(document.querySelector(`[data-scene="${closingId}"]`)||lastSceneTrigger)?.focus()}
+    function renderPipeline(){
+      const p=activeCatalog.pipeline,esc=escapeAssetHTML;
+      document.getElementById('pipelineContent').innerHTML=`<p>${esc(p.summary)}</p><p>${esc(p.method)}</p><div class="pipeline-guide__batches">${p.batches.map(b=>`<article class="pipeline-guide__batch"><h4>${esc(b.name)}</h4><p>${esc(b.projectType)}</p><p>${esc(b.materials)}</p><p>${esc(b.result)}</p></article>`).join('')}</div><p>${esc(p.boundary)}</p><p>${allScenes().length}个场景 · 流水线${esc(p.version)} · ${esc(activeCatalog.releaseId)}</p>`;
+    }
+    function catalogStatus(source,message){
+      const node=document.getElementById('catalogStatus');node.dataset.source=source;node.dataset.release=activeCatalog.releaseId;node.textContent=message;
+    }
+    function isOlderCatalogRelease(incoming,current){
+      const pattern=/^(\d{4}-\d{2}-\d{2})-v(\d+)\.(\d+)\.(\d+)$/;
+      const incomingParts=incoming.match(pattern),currentParts=current.match(pattern);
+      if(!incomingParts||!currentParts)return false;
+      if(incomingParts[1]!==currentParts[1])return incomingParts[1]<currentParts[1];
+      for(let index=2;index<5;index++){
+        if(Number(incomingParts[index])!==Number(currentParts[index]))return Number(incomingParts[index])<Number(currentParts[index]);
+      }
+      return false;
+    }
+    async function refreshPublishedCatalog(){
+      catalogStatus('loading',`正在同步后台场景目录 · ${activeCatalog.releaseId}`);
+      try{
+        const rows=await assetCloudRequest('scene_map_catalog?catalog_id=eq.bank-main&select=schema_version,release_id,payload&limit=1');
+        if(!Array.isArray(rows)||rows.length!==1)throw new Error('后台目录尚未发布');
+        const row=rows[0],next=validatePublishedCatalog(row.payload);
+        if(row.schema_version!==next.schemaVersion||row.release_id!==next.releaseId)throw new Error('后台版本不一致');
+        if(isOlderCatalogRelease(next.releaseId,activeCatalog.releaseId)){catalogStatus('embedded',`后台仍为旧版${next.releaseId}，当前显示内置快照 · ${activeCatalog.releaseId}；后台更新后刷新即可同步。`);return false;}
+        // Do not replace a card underneath an open detail or an unsaved draft.
+        if(currentDetailScene||contentEditor||tagEditor||assetEditing){catalogStatus('embedded',`后台目录已就绪；刷新页面加载新目录 · 当前${activeCatalog.releaseId}`);return false;}
+        activeCatalog=next;domains=next.domains;
+        if(!domains.some(d=>d.id===state.domain))state.domain=domains[0].id;
+        if(!['all','pending'].includes(state.department)&&!approvedDepartmentRelations().some(r=>r.departmentId===state.department))state.department='pending';
+        renderDomainNavigation();sync();render();renderPipeline();
+        catalogStatus('cloud',`后台场景目录 · ${allScenes().length}个场景 · ${activeCatalog.releaseId}`);return true;
+      }catch(error){catalogStatus('embedded',`后台目录暂不可用，当前显示内置快照 · ${activeCatalog.releaseId}；可刷新重试。`);return false;}
+    }
+    function startSceneLibrary(){validatePublishedCatalog(embeddedCatalog);bindContentPanels();bindTagPanel();init();refreshSharedAssetLinks();refreshSharedSceneContent();refreshSharedSceneTags();refreshPublishedCatalog();}
+    startSceneLibrary();
+  </script>
+</body>
+</html>
+
+
+

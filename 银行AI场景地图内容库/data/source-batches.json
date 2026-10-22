@@ -1,0 +1,45 @@
+[
+  {
+    "batchId": "B01",
+    "sourcePrefixes": [
+      "PPT-作战指挥中心"
+    ]
+  },
+  {
+    "batchId": "B02",
+    "sourcePrefixes": [
+      "CP-",
+      "CR-",
+      "RW-",
+      "FM-",
+      "OC-",
+      "AC-",
+      "TD-",
+      "HR-"
+    ]
+  },
+  {
+    "batchId": "B03",
+    "sourcePrefixes": [
+      "KS-BI-"
+    ]
+  },
+  {
+    "batchId": "B04",
+    "sourcePrefixes": [
+      "MS25-"
+    ]
+  },
+  {
+    "batchId": "B05",
+    "sourcePrefixes": [
+      "KH-PILOT-01/"
+    ]
+  },
+  {
+    "batchId": "B06",
+    "sourcePrefixes": [
+      "KH-NAV-01/"
+    ]
+  }
+]

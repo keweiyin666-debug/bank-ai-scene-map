@@ -1,0 +1,7 @@
+**/shared-before.json
+**/*快照*
+.env
+.env.*
+node_modules/
+.DS_Store
+output/
