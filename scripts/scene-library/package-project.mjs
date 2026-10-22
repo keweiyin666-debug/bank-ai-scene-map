@@ -17,7 +17,7 @@ for(const file of fs.readdirSync(path.join(root,library)).filter(f=>/^\d\d_.*\.m
 for(const file of ['department-mapping.json','organization-audiences.json','published-catalog.json','source-batches.json'])copy(library+'/data/'+file);
 for(const file of fs.readdirSync(path.join(root,library,'migrations')).filter(f=>f.endsWith('.sql')))copy(library+'/migrations/'+file);
 for(const file of ['catalog.json','apply-catalog.sql','apply-with-tags.sql','manifest.json'])copy(library+'/releases/'+release+'/'+file);
-for(const file of ['SKILL.md','agents/openai.yaml','references/workflow.md','references/batch-ingestion.md'])copy('.agents/skills/bank-ai-scene-map-manager/'+file);
+for(const file of ['SKILL.md','agents/openai.yaml','references/workflow.md','references/batch-ingestion.md','references/knowhow-asset-enrichment.md'])copy('.agents/skills/bank-ai-scene-map-manager/'+file);
 write('index.html',read('output/bank-ai-scene-map/index.html'));
 write('README.md',read('README.scene-map.md'));
 const sourceIndex=read(library+'/08_L4场景卡片索引.md');
